@@ -51,6 +51,7 @@ abstract class BotaniQDatabase : RoomDatabase() {
             INSTANCE?.let { database ->
                 scope.launch(Dispatchers.IO) {
                     val speciesDao = database.speciesInfoDao()
+                    val plantDao = database.plantDao()
 
                     val initialSpecies = listOf(
                         SpeciesInfoEntity(
@@ -63,6 +64,58 @@ abstract class BotaniQDatabase : RoomDatabase() {
                         //, TODO añadir especies que se vayan a utilizar
                     )
                     speciesDao.insertInitialSpecies(initialSpecies)
+
+                    val testPlants = listOf(
+                        PlantEntity(
+                            nickname = "La del salón",
+                            speciesName = "Maranta leuconeura",
+                            photoUri = null,
+                            baseWaterFreq = 7,
+                            lastWateredDate = System.currentTimeMillis(),
+                            nextWateringDate = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
+                        ),
+                        PlantEntity(
+                            nickname = "La del otro lado",
+                            speciesName = "Maranta leuconeura",
+                            photoUri = null,
+                            baseWaterFreq = 7,
+                            lastWateredDate = System.currentTimeMillis(),
+                            nextWateringDate = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
+                        ),
+                        PlantEntity(
+                            nickname = "La del salón",
+                            speciesName = "Maranta leuconeura",
+                            photoUri = null,
+                            baseWaterFreq = 7,
+                            lastWateredDate = System.currentTimeMillis(),
+                            nextWateringDate = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
+                        ),
+                        PlantEntity(
+                            nickname = "La del baño",
+                            speciesName = "Maranta leuconeura",
+                            photoUri = null,
+                            baseWaterFreq = 7,
+                            lastWateredDate = System.currentTimeMillis(),
+                            nextWateringDate = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
+                        ),
+                        PlantEntity(
+                            nickname = "Juanito pepillo",
+                            speciesName = "Maranta leuconeura",
+                            photoUri = null,
+                            baseWaterFreq = 7,
+                            lastWateredDate = System.currentTimeMillis(),
+                            nextWateringDate = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
+                        ),
+                        PlantEntity(
+                            nickname = "La del otro lado",
+                            speciesName = "Maranta leuconeura",
+                            photoUri = null,
+                            baseWaterFreq = 7,
+                            lastWateredDate = System.currentTimeMillis(),
+                            nextWateringDate = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
+                        )
+                    )
+                    testPlants.forEach { plantDao.insertPlant(it) }
                 }
             }
         }

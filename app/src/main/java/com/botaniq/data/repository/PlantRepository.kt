@@ -15,11 +15,24 @@ class PlantRepository(
 
     val allPlants: Flow<List<PlantEntity>> = plantDao.getAllPlants()
 
+    suspend fun getAllSpecies(): List<SpeciesInfoEntity> {
+        return withContext(Dispatchers.IO) {
+            speciesInfoDao.getAllSpecies()
+        }
+    }
+
     suspend fun registerPlant(plant: PlantEntity) {
         withContext(Dispatchers.IO) {
             plantDao.insertPlant(plant)
         }
     }
+
+    suspend fun updatePlant(plant: PlantEntity) {
+        withContext(Dispatchers.IO) {
+            plantDao.updatePlant(plant)
+        }
+    }
+
 
     suspend fun confirmWatering(plant: PlantEntity) {
         withContext(Dispatchers.IO) {
@@ -28,7 +41,6 @@ class PlantRepository(
             val frequencyInMillis = plant.baseWaterFreq * 24L * 60L * 60L * 1000L
             val nextWatering = currentTime + frequencyInMillis
 
-            // Copia actualizada de la planta
             val updatedPlant = plant.copy(
                 lastWateredDate = currentTime,
                 nextWateringDate = nextWatering

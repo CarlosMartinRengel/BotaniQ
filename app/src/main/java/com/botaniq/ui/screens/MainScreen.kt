@@ -115,9 +115,13 @@ fun AddItem(
             .clip(CircleShape)
             .background(background)
             .clickable(onClick = {
-                navController.navigate(screen.route) {
-                    popUpTo(navController.graph.findStartDestination().id)
-                    launchSingleTop = true
+                if (screen.route == BottomBarScreen.Add.route) {
+                    navController.navigate("plant_screen")
+                } else {
+                    navController.navigate(screen.route) {
+                        popUpTo(navController.graph.findStartDestination().id)
+                        launchSingleTop = true
+                    }
                 }
             })
     ) {

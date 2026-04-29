@@ -3,6 +3,7 @@ package com.botaniq.ui.screens
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -55,7 +56,7 @@ fun InventoryScreen(
     context: Context = LocalContext.current,
     // Creamos un scope vinculado al ciclo de vida de esta composición
     scope: CoroutineScope = rememberCoroutineScope(),
-
+    onPlantClick: (Int) -> Unit,
     viewModel: PlantViewModel = viewModel(
         factory = PlantViewModelFactory(
             AppModule.providePlantRepository(
@@ -65,7 +66,7 @@ fun InventoryScreen(
         )
     )
 ) {
-    // Recolectamos el estado de las plantas de forma segura para el ciclo de vida
+    // Se consigue el estado de las plantas de forma segura para el ciclo de vida
     val plants by viewModel.plantsState.collectAsState()
 
     Column(
@@ -93,7 +94,8 @@ fun InventoryScreen(
                 items(plants) { plant ->
                     PlantCard(
                         plant = plant,
-                        onWaterConfirm = { viewModel.confirmWatering(plant) }
+                        onWaterConfirm = { viewModel.confirmWatering(plant) },
+                        onClick = { onPlantClick(plant.id) }
                     )
                 }
             }
@@ -104,13 +106,15 @@ fun InventoryScreen(
 @Composable
 fun PlantCard(
     plant: PlantEntity,
-    onWaterConfirm: () -> Unit
+    onWaterConfirm: () -> Unit,
+    onClick: () -> Unit
 ) {
-    // Box permite que el botón flote sobre la tarjeta
+    // Box para que el botón flote sobre la tarjeta
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp, 10.dp)
+            .clickable { onClick() }
     ) {
 
         Card(
@@ -139,8 +143,8 @@ fun PlantCard(
                                 topStart = 16.dp,
                                 topEnd = 16.dp
                             )
-                        ), // Redondeamos solo arriba
-                    contentScale = ContentScale.Crop // Esto hace que la imagen llene el espacio sin deformarse
+                        ), // Redondeo arriba
+                    contentScale = ContentScale.Crop // La imagen llena el espacio sin deformarse
                 )
                 // Fila con informacion de la planta
                 Row(

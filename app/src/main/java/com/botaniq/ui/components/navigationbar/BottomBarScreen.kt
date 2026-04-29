@@ -22,7 +22,6 @@ sealed class BottomBarScreen(
         route = "add",
         title = R.string.barnavigation_add,
         icon = R.drawable.ic_bottom_add,
-
         icon_focused = R.drawable.ic_bottom_add_focused
     )
 
