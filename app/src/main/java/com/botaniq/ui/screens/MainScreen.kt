@@ -99,7 +99,9 @@ fun AddItem(
     currentDestination: NavDestination?,
     navController: NavHostController
 ) {
-    val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
+    val selected = currentDestination?.hierarchy?.any {
+        it.route?.substringBefore('?') == screen.route.substringBefore('?')
+    } == true
 
     val background =
         if (selected) Color.White else Color.Transparent
@@ -115,13 +117,12 @@ fun AddItem(
             .clip(CircleShape)
             .background(background)
             .clickable(onClick = {
-                if (screen.route == BottomBarScreen.Add.route) {
-                    navController.navigate("plant_screen")
-                } else {
-                    navController.navigate(screen.route) {
-                        popUpTo(navController.graph.findStartDestination().id)
-                        launchSingleTop = true
+                navController.navigate(screen.route) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
                     }
+                    launchSingleTop = true
+                    restoreState = true
                 }
             })
     ) {

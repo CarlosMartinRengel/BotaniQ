@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -103,9 +104,9 @@ fun PlantScreen(
                 }
                 Text(
                     text = when {
-                        plantId == 0 -> "Nueva Planta"
-                        state.isEditMode -> "Editar Planta"
-                        else -> "Detalles"
+                        plantId == 0 -> stringResource(R.string.plant_details_topBar_newPlant)
+                        state.isEditMode -> stringResource(R.string.plant_details_topBar_editPlant)
+                        else -> stringResource(R.string.plant_details_topBar_details)
                     },
                     style = MaterialTheme.typography.titleLarge
                 )
@@ -140,12 +141,11 @@ fun PlantScreen(
                     contentScale = ContentScale.Crop
                 )
                 if (state.isEditMode && plantId == 0 && state.photoUri == null) {
-                    // Botón para añadir foto
                     Button(
                         onClick = { /*TODO Lógica cámara */ },
                         modifier = Modifier.align(Alignment.Center)
                     ) {
-                        Text("Añadir Foto")
+                        Text(stringResource(R.string.plant_details_addPhoto))
                     }
                 }
             }
@@ -156,7 +156,7 @@ fun PlantScreen(
                     OutlinedTextField(
                         value = state.nickname,
                         onValueChange = { viewModel.onNicknameChange(it) },
-                        label = { Text("Apodo de la planta") },
+                        label = { Text(stringResource(R.string.plant_details_nickname)) },
                         modifier = Modifier.fillMaxWidth()
                     )
 
@@ -172,13 +172,19 @@ fun PlantScreen(
                     } else {
                         // VARIANTE 1: Especie bloqueada
                         Text(
-                            "Especie: ${state.speciesName}",
+                            text = stringResource(
+                                R.string.plant_details_species_label,
+                                state.speciesName ?: ""
+                            ),
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
 
                     // Selector de frecuencia (Placeholder -> 7)
-                    Text("Frecuencia de riego: ${state.baseWaterFreq} días")
+                    Text(
+                        text = stringResource(R.string.plant_details_freq, state.baseWaterFreq),
+                        style = MaterialTheme.typography.bodyMedium // O el estilo que prefieras
+                    )
                     Slider(
                         value = state.baseWaterFreq.toFloat(),
                         onValueChange = { viewModel.onFreqChange(it.toInt()) },
@@ -191,7 +197,7 @@ fun PlantScreen(
                             .fillMaxWidth()
                             .padding(top = 16.dp)
                     ) {
-                        Text("GUARDAR PLANTA")
+                        Text(stringResource(R.string.plant_details_savePlant).uppercase())
                     }
 
                 } else {
@@ -209,13 +215,25 @@ fun PlantScreen(
                         color = DividerDefaults.color
                     )
 
-                    DetailRow("Categoría", state.category)
-                    DetailRow("Frecuencia personalizada", "${state.baseWaterFreq} días")
-                    DetailRow("Último riego", formatDate(state.lastWatered))
-                    DetailRow("Próximo riego", formatDate(state.nextWatering))
+                    DetailRow(stringResource(R.string.plant_details_category), state.category)
+                    DetailRow(
+                        stringResource(R.string.plant_details_freqCustom),
+                        "${state.baseWaterFreq} días"
+                    )
+                    DetailRow(
+                        stringResource(R.string.plant_details_lastWatered),
+                        formatDate(state.lastWatered)
+                    )
+                    DetailRow(
+                        stringResource(R.string.plant_details_nextWatering),
+                        formatDate(state.nextWatering)
+                    )
 
                     Spacer(modifier = Modifier.height(16.dp))
-                    Text("Consejos de cuidado:", fontWeight = FontWeight.Bold)
+                    Text(
+                        stringResource(R.string.plant_details_careTips),
+                        fontWeight = FontWeight.Bold
+                    )
                     Text(state.careTips)
                 }
             }

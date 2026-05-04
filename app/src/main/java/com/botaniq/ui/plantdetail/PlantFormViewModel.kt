@@ -34,7 +34,7 @@ class PlantFormViewModel(private val repository: PlantRepository) : ViewModel() 
                 commonName = speciesInfo?.commonName ?: "",
                 category = speciesInfo?.category ?: "",
                 careTips = speciesInfo?.careTips ?: "",
-                // Si la especie existe, sugerimos su frecuencia, si no, 7 por defecto
+                // Si la especie existe, se sugiere su frecuencia, si no, 7 por defecto
                 baseWaterFreq = speciesInfo?.defaultWateringDays ?: 7,
                 isEditMode = true
             )

@@ -18,11 +18,11 @@ import androidx.room.PrimaryKey
 )
 data class PlantEntity(
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0, // ID autogenerado
-    val nickname: String, // Apodo personalizado
-    val speciesName: String, // Nombre de la especie y FK
-    val photoUri: String?, // Ruta de la fotografía local
-    val baseWaterFreq: Int, // Frecuencia base teórica de riego
-    val lastWateredDate: Long, // Timestamp del último riego
-    val nextWateringDate: Long // Próxima fecha de riego recomendada
+    val id: Int = 0,
+    val nickname: String,
+    val speciesName: String,
+    val photoUri: String?,
+    val baseWaterFreq: Int,
+    val lastWateredDate: Long,
+    val nextWateringDate: Long
 )

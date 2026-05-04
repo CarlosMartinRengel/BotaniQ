@@ -14,6 +14,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.botaniq.R
 import com.botaniq.data.local.entities.SpeciesInfoEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,10 +35,10 @@ fun SpeciesDropdown(
     ) {
         // Campo de texto visible
         OutlinedTextField(
-            value = selected ?: "Selecciona una especie",
+            value = selected ?: stringResource(R.string.species_dropdown_selectSpecie),
             onValueChange = {},
             readOnly = true, // Se elige de la lista -> no se puede editar
-            label = { Text("Especie") },
+            label = { Text(stringResource(R.string.species_dropdown_specie)) },
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
             },
