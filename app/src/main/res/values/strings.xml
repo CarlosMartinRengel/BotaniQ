@@ -1,3 +1,28 @@
 <resources>
     <string name="app_name">BotaniQ</string>
+
+    <!-- Bar navigation -->
+    <string name="barnavigation.inventory">Inventario</string>
+    <string name="barnavigation.add">Registrar</string>
+    <string name="barnavigation.diagnostic">Diagnóstico</string>
+
+    <!-- Plant Details -->
+    <string name="plant_details.topBar.newPlant">Nueva Planta</string>
+    <string name="plant_details.topBar.editPlant">Editar Planta</string>
+    <string name="plant_details.topBar.details">Detalles</string>
+    <string name="plant_details.addPhoto">Añadir foto</string>
+    <string name="plant_details.nickname">Apodo de la planta</string>
+    <string name="plant_details.species_label">Especie: %1$s</string>
+    <string name="plant_details.commonName">Nombre común</string>
+    <string name="plant_details.category">Categoría</string>
+    <string name="plant_details.freq">Frecuencia de riego: %1$d días</string>
+    <string name="plant_details.careTips">Consejos de cuidado:</string>
+    <string name="plant_details.lastWatered">Último riego</string>
+    <string name="plant_details.nextWatering">Próximo riego</string>
+    <string name="plant_details.freqCustom">Frecuencia personalizada</string>
+    <string name="plant_details.savePlant">Guardar planta</string>
+
+    <string name="species_dropdown.specie">Especie</string>
+    <string name="species_dropdown.selectSpecie">Selecciona una especie</string>
+
 </resources>

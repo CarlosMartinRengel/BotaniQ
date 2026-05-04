@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">BotaniQ</string>
+
+    <!-- Bar navigation -->
+    <string name="barnavigation.inventory">Inventory</string>
+    <string name="barnavigation.add">Register</string>
+    <string name="barnavigation.diagnostic">Diagnostic</string>
+
+    <!-- Plant Details -->
+    <string name="plant_details.topBar.newPlant">New Plant</string>
+    <string name="plant_details.topBar.editPlant">Edit Plant</string>
+    <string name="plant_details.topBar.details">Details</string>
+    <string name="plant_details.addPhoto">Add photo</string>
+    <string name="plant_details.nickname">Plant nickname</string>
+    <string name="plant_details.species_label">Species: %1$s</string>
+    <string name="plant_details.commonName">Common name</string>
+    <string name="plant_details.category">Category</string>
+    <string name="plant_details.freq">Watering frequency: %1$d days</string>
+    <string name="plant_details.careTips">Care tips:</string>
+    <string name="plant_details.lastWatered">Last watered</string>
+    <string name="plant_details.nextWatering">Next watering</string>
+    <string name="plant_details.freqCustom">Custom frequency</string>
+    <string name="plant_details.savePlant">Save plant</string>
+
+    <string name="species_dropdown.specie">Species</string>
+    <string name="species_dropdown.selectSpecie">Select a species</string>
+
+</resources>
