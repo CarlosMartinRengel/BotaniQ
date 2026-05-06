@@ -4,7 +4,7 @@
     <!-- Bar navigation -->
     <string name="barnavigation.inventory">Inventory</string>
     <string name="barnavigation.add">Register</string>
-    <string name="barnavigation.diagnostic">Diagnostic</string>
+    <string name="barnavigation.scanner">Scanner</string>
 
     <!-- Plant Details -->
     <string name="plant_details.topBar.newPlant">New Plant</string>
@@ -25,4 +25,11 @@
     <string name="species_dropdown.specie">Species</string>
     <string name="species_dropdown.selectSpecie">Select a species</string>
 
+    <!-- Camera Screen -->
+    <string name="camera.mode.diagnosis">Diagnosis</string>
+    <string name="camera.mode.recognition">Recognition</string>
+    <string name="camera.mode.access">Camera access</string>
+    <string name="camera.mode.permission">"To identify your plant's species or diagnose its health, BotaniQ needs access to your device's camera."</string>
+    <string name="camera.mode.open">Open camera</string>
+    <string name="camera.mode.toast">"Camera permission is required in Settings to use the scanner"</string>
 </resources>

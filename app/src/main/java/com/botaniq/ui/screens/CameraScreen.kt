@@ -1,19 +1,281 @@
 package com.botaniq.ui.screens
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.util.Log
+import android.widget.Toast
+import android.widget.Toast.makeText
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY
+import androidx.camera.core.ImageCaptureException
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FlashOff
+import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItemDefaults.contentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.botaniq.R
+import com.botaniq.ui.camera.CameraUIState
+import com.botaniq.ui.camera.CameraViewModel
+import com.botaniq.ui.camera.ScannerMode
+import com.botaniq.ui.components.CameraPreview
+import java.io.File
 
 @Composable
-fun CameraScreen() {
+fun CameraScreen(
+    viewModel: CameraViewModel = viewModel()
+) {
+    val context = LocalContext.current
+    val state = viewModel.uiState
 
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Text(text = "Camera Screen", fontSize = 20.sp)
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            viewModel.onPermissionResult(isGranted)
+            if (!isGranted) {
+                makeText(
+                    context,
+                    "NO",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    )
+
+    LaunchedEffect(Unit) {
+        val hasPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+
+        viewModel.onPermissionResult(hasPermission)
     }
 
+    if (state.isPermissionGranted) {
+        ScannerContent(state = state, onModeChange = {
+            viewModel.setScannerMode(it)
+        })
+    } else {
+        PermissionRequestContent(onRequestPermission = {
+            permissionLauncher.launch(Manifest.permission.CAMERA)
+        })
+    }
+}
+
+@Composable
+fun PermissionRequestContent(onRequestPermission: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            stringResource(R.string.camera_mode_access),
+            style = MaterialTheme.typography.headlineMedium
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            stringResource(R.string.camera_mode_permission),
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            "Si denegaste el permiso previamente, debes activarlo desde los Ajustes de tu teléfono.",
+            color = MaterialTheme.colorScheme.error,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodySmall
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+        Button(onClick = onRequestPermission) {
+            Text(stringResource(R.string.camera_mode_open))
+        }
+
+    }
+}
+
+@Composable
+fun ScannerContent(
+    state: CameraUIState,
+    onModeChange: (ScannerMode) -> Unit
+) {
+    val context = LocalContext.current
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            if (uri != null) {
+                // TODO Enviar uri a la IA
+            }
+        }
+    )
+
+    var isFlashEnabled by remember { mutableStateOf(false) }
+
+    val imageCapture = remember {
+        ImageCapture.Builder().setCaptureMode(CAPTURE_MODE_MINIMIZE_LATENCY).build()
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        CameraPreview(modifier = Modifier.fillMaxSize(), imageCapture = imageCapture)
+
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(bottom = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Selector de modo (Reconocimiento / Diagnóstico)
+            Row(
+                modifier = Modifier.padding(bottom = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                ScannerMode.entries.forEach { mode ->
+                    FilterChip(
+                        selected = state.selectedMode == mode,
+                        onClick = { onModeChange(mode) },
+                        label = {
+                            Text(
+                                text = stringResource(id = mode.titleRes),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = { isFlashEnabled = !isFlashEnabled },
+                    // Le damos un fondo semi-transparente para que se vea sobre cualquier planta
+                    modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                ) {
+                    Icon(
+                        imageVector = if (isFlashEnabled) Icons.Default.FlashOn else Icons.Default.FlashOff,
+                        contentDescription = "Alternar Flash",
+                        tint = Color.White
+                    )
+                }
+                Button(
+                    onClick = {
+                        imageCapture.flashMode =
+                            if (isFlashEnabled) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF
+
+                        takePhoto(
+                            context = context,
+                            imageCapture = imageCapture,
+                            onPhotoCaptured = { photoFile ->
+                                makeText(
+                                    context,
+                                    "¡Foto capturada! Tamaño: ${photoFile.length() / 1024} KB",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                // TODO: Conectar TensorFlow
+                            })
+                    },
+                    modifier = Modifier.size(72.dp),
+                    shape = CircleShape
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_bottom_camera_focused),
+                        contentDescription = "icon",
+                        tint = contentColor,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+
+                Button(
+                    onClick = {
+                        photoPickerLauncher.launch(
+                            // Solo imagenes
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
+                    modifier = Modifier
+                        .size(72.dp)
+                        .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.PhotoLibrary,
+                        contentDescription = "Abrir Galería",
+                        tint = Color.White
+                    )
+                }
+            }
+        }
+    }
+}
+
+fun takePhoto(
+    context: Context,
+    imageCapture: ImageCapture,
+    onPhotoCaptured: (File) -> Unit,
+) {
+    val photoFile = File(context.cacheDir, "botaniq_draft_${System.currentTimeMillis()}.jpg")
+    val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
+    imageCapture.takePicture(
+        outputOptions,
+        ContextCompat.getMainExecutor(context),
+        object : ImageCapture.OnImageSavedCallback {
+            override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                Log.d("CameraScreen", "Foto guardada con éxito en: ${photoFile.absolutePath}")
+                onPhotoCaptured(photoFile) // El archivo se devuelve a la UI
+            }
+
+            override fun onError(exc: ImageCaptureException) {
+                Log.e("CameraScreen", "Error al tomar la foto", exc)
+            }
+        }
+    )
 }

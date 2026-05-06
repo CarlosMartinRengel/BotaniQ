@@ -4,7 +4,7 @@
     <!-- Bar navigation -->
     <string name="barnavigation.inventory">Inventario</string>
     <string name="barnavigation.add">Registrar</string>
-    <string name="barnavigation.diagnostic">Diagnóstico</string>
+    <string name="barnavigation.scanner">Escáner</string>
 
     <!-- Plant Details -->
     <string name="plant_details.topBar.newPlant">Nueva Planta</string>
@@ -24,5 +24,13 @@
 
     <string name="species_dropdown.specie">Especie</string>
     <string name="species_dropdown.selectSpecie">Selecciona una especie</string>
+
+    <!-- Camera Screen -->
+    <string name="camera.mode.diagnosis">Diagnóstico</string>
+    <string name="camera.mode.recognition">Reconocimiento</string>
+    <string name="camera.mode.access">Acceso a la cámara</string>
+    <string name="camera.mode.permission">Para poder identificar la especie de tu planta o diagnosticar su estado de salud, BotaniQ necesita acceder a la cámara de tu dispositivo.</string>
+    <string name="camera.mode.open">Abrir cámara</string>
+    <string name="camera.mode.toast">Es necesario el permiso en Ajustes para usar el escáner</string>
 
 </resources>

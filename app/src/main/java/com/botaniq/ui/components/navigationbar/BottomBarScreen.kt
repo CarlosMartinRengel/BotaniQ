@@ -24,7 +24,7 @@ sealed class BottomBarScreen(
 
     object Diagnostic : BottomBarScreen(
         "diagnostic",
-        R.string.barnavigation_diagnostic,
+        R.string.barnavigation_scanner,
         R.drawable.ic_bottom_camera,
         R.drawable.ic_bottom_camera_focused
     )
