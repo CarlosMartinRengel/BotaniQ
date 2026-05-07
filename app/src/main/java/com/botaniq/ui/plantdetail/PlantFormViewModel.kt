@@ -116,6 +116,10 @@ class PlantFormViewModel(private val repository: PlantRepository) : ViewModel() 
             onSuccess()
         }
     }
+
+    fun onPhotoUriChange(newUri: String) {
+        uiState = uiState.copy(photoUri = newUri)
+    }
 }
 
 

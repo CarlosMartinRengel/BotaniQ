@@ -1,5 +1,6 @@
 package com.botaniq.ui.camera
 
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -13,6 +14,7 @@ enum class ScannerMode(val titleRes: Int) {
 
 data class CameraUIState(
     val selectedMode: ScannerMode = ScannerMode.RECOGNITION,
+    val capturedImageUri: Uri? = null,
     val isPermissionGranted: Boolean = false,
     val isProcessing: Boolean = false,
     val errorMsg: String? = null
@@ -28,5 +30,15 @@ class CameraViewModel : ViewModel() {
 
     fun onPermissionResult(isGranted: Boolean) {
         uiState = uiState.copy(isPermissionGranted = isGranted)
+    }
+
+    // Se acepta la foto
+    fun onImageCaptured(uri: Uri) {
+        uiState = uiState.copy(capturedImageUri = uri)
+    }
+
+    // Si se repite la foto
+    fun clearCapturedImage() {
+        uiState = uiState.copy(capturedImageUri = null)
     }
 }

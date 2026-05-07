@@ -47,12 +47,39 @@ fun BottomNavGraph(
                 photoUri = photoUri,
                 onBack = {
                     navController.popBackStack()
-                }
+                },
+                onNavigateToCamera = {
+                    navController.navigate("${BottomBarScreen.Diagnostic.route}?isFromForm=true")
+                },
+                navController = navController
             )
         }
-        composable(route = BottomBarScreen.Diagnostic.route)
-        {
-            CameraScreen()
+        composable(
+            route = "${BottomBarScreen.Diagnostic.route}?isFromForm={isFromForm}",
+            arguments = listOf(
+                navArgument("isFromForm") {
+                    type = NavType.BoolType
+                    defaultValue =
+                        false
+                }
+            )
+        ) { backStackEntry ->
+            val isFromForm = backStackEntry.arguments?.getBoolean("isFromForm") ?: false
+
+            CameraScreen(
+                isFromForm = isFromForm, // Pasamos el contexto a la pantalla
+                onPhotoConfirmedForForm = { uri ->
+                    // Se guarda la foto si la pantalla previa es la de formulario
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("returnedPhotoUri", uri.toString())
+                    navController.popBackStack()
+                },
+                onAnalyzeWithAI = { uri, mode ->
+                    // Desde el menú, entrada a IA
+                    // TODO: Integrar aquí la lógica de TensorFlow Lite
+                }
+            )
         }
     }
 }

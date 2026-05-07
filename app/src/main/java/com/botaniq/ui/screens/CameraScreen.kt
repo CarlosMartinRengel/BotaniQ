@@ -3,6 +3,7 @@ package com.botaniq.ui.screens
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import android.widget.Toast.makeText
@@ -44,13 +45,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.botaniq.R
 import com.botaniq.ui.camera.CameraUIState
 import com.botaniq.ui.camera.CameraViewModel
@@ -60,7 +64,10 @@ import java.io.File
 
 @Composable
 fun CameraScreen(
-    viewModel: CameraViewModel = viewModel()
+    viewModel: CameraViewModel = viewModel(),
+    isFromForm: Boolean = false,
+    onPhotoConfirmedForForm: (Uri) -> Unit = {},
+    onAnalyzeWithAI: (Uri, ScannerMode) -> Unit = { _, _ -> }
 ) {
     val context = LocalContext.current
     val state = viewModel.uiState
@@ -89,9 +96,29 @@ fun CameraScreen(
     }
 
     if (state.isPermissionGranted) {
-        ScannerContent(state = state, onModeChange = {
-            viewModel.setScannerMode(it)
-        })
+        if (state.capturedImageUri != null) {
+            ImageConfirmationContent(
+                imageUri = state.capturedImageUri,
+                mode = state.selectedMode,
+                onRetry = { viewModel.clearCapturedImage() },
+                isFromForm = isFromForm,
+                onConfirm = {
+                    if (isFromForm) {
+                        onPhotoConfirmedForForm(state.capturedImageUri)
+                    } else {
+                        // TODO onAnalyzeWithAI(state.capturedImageUri, state.selectedMode)
+                    }
+                }
+            )
+        } else {
+            ScannerContent(
+                state = state,
+                onModeChange = { viewModel.setScannerMode(it) },
+                onImageObtained = { uri -> viewModel.onImageCaptured(uri) },
+                isFromForm = isFromForm
+            )
+
+        }
     } else {
         PermissionRequestContent(onRequestPermission = {
             permissionLauncher.launch(Manifest.permission.CAMERA)
@@ -138,6 +165,8 @@ fun PermissionRequestContent(onRequestPermission: () -> Unit) {
 @Composable
 fun ScannerContent(
     state: CameraUIState,
+    onImageObtained: (Uri) -> Unit,
+    isFromForm: Boolean,
     onModeChange: (ScannerMode) -> Unit
 ) {
     val context = LocalContext.current
@@ -145,7 +174,7 @@ fun ScannerContent(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
             if (uri != null) {
-                // TODO Enviar uri a la IA
+                onImageObtained(uri)
             }
         }
     )
@@ -169,25 +198,26 @@ fun ScannerContent(
                 .padding(bottom = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Selector de modo (Reconocimiento / Diagnóstico)
-            Row(
-                modifier = Modifier.padding(bottom = 24.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                ScannerMode.entries.forEach { mode ->
-                    FilterChip(
-                        selected = state.selectedMode == mode,
-                        onClick = { onModeChange(mode) },
-                        label = {
-                            Text(
-                                text = stringResource(id = mode.titleRes),
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    )
+            if (!isFromForm) {
+                // Selector de modo (Reconocimiento / Diagnóstico)
+                Row(
+                    modifier = Modifier.padding(bottom = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    ScannerMode.entries.forEach { mode ->
+                        FilterChip(
+                            selected = state.selectedMode == mode,
+                            onClick = { onModeChange(mode) },
+                            label = {
+                                Text(
+                                    text = stringResource(id = mode.titleRes),
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        )
+                    }
                 }
             }
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -215,12 +245,7 @@ fun ScannerContent(
                             context = context,
                             imageCapture = imageCapture,
                             onPhotoCaptured = { photoFile ->
-                                makeText(
-                                    context,
-                                    "¡Foto capturada! Tamaño: ${photoFile.length() / 1024} KB",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                // TODO: Conectar TensorFlow
+                                onImageObtained(photoFile.toUri())
                             })
                     },
                     modifier = Modifier.size(72.dp),
@@ -279,3 +304,67 @@ fun takePhoto(
         }
     )
 }
+
+@Composable
+fun ImageConfirmationContent(
+    imageUri: Uri,
+    mode: ScannerMode,
+    isFromForm: Boolean,
+    onRetry: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        // 1. Cabecera
+        Text(
+            text = stringResource(R.string.camera_mode_confirmImage),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(top = 32.dp)
+        )
+
+        // 2. Imagen capturada
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            AsyncImage(
+                model = imageUri,
+                contentDescription = "Imagen capturada",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
+        // 3. Botonera (Reintentar / Continuar)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(32.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Button(
+                onClick = onRetry,
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = Color.Gray
+                )
+            ) {
+                Text(stringResource(R.string.camera_mode_retryPhoto))
+            }
+
+            Button(onClick = onConfirm) {
+                Text(
+                    text = if (isFromForm) stringResource(R.string.camera_mode_plantFormOnResult)
+                    else if (mode == ScannerMode.RECOGNITION) stringResource(R.string.camera_mode_recognitionOnResult)
+                    else stringResource(R.string.camera_mode_diagnosisOnResult)
+                )
+            }
+            //TODO internacionalizacion
+        }
+    }
+}
+
