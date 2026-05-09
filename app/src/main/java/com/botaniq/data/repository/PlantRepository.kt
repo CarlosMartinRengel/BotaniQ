@@ -51,6 +51,12 @@ class PlantRepository(
         }
     }
 
+    suspend fun getPlantById(id: Int): PlantEntity? {
+        return withContext(Dispatchers.IO) {
+            plantDao.getPlantByIdSync(id)
+        }
+    }
+
 
     suspend fun confirmWatering(plant: PlantEntity, city: String) {
         withContext(Dispatchers.IO) {
@@ -116,11 +122,14 @@ class PlantRepository(
     }
 
     private fun scheduleWateringNotification(plantId: Int, plantName: String, nextWatering: Long) {
+
         val currentTime = System.currentTimeMillis()
         val delayInMillis = nextWatering - currentTime
 
         // En caso de que la fecha salga mal
         if (delayInMillis <= 0) return
+
+        // Baja la notificacion a 10s val delayInMillis = 10000L
 
         val inputData = Data.Builder()
             .putString("PLANT_NAME", plantName)
