@@ -4,6 +4,9 @@ import android.content.Context
 import com.botaniq.data.local.BotaniQDatabase
 import com.botaniq.data.local.dao.PlantDao
 import com.botaniq.data.local.dao.SpeciesInfoDao
+import com.botaniq.data.local.dao.WeatherCacheDao
+import com.botaniq.data.remote.RetrofitInstance
+import com.botaniq.data.remote.WeatherApiService
 import com.botaniq.data.repository.PlantRepository
 import kotlinx.coroutines.CoroutineScope
 
@@ -16,13 +19,17 @@ object AppModule {
     // 2. Proveer el DAO de Plantas
     fun providePlantDao(db: BotaniQDatabase): PlantDao = db.plantDao()
     fun provideSpeciesInfoDao(db: BotaniQDatabase): SpeciesInfoDao = db.speciesInfoDao()
-
+    fun provideWeatherCacheDao(db: BotaniQDatabase): WeatherCacheDao = db.weatherCacheDao()
+    fun provideWeatherApi(): WeatherApiService = RetrofitInstance.api
 
     // 4. Proveer el Repositorio con TODAS sus dependencias
     fun providePlantRepository(
+        context: Context,
         plantDao: PlantDao,
-        speciesInfoDao: SpeciesInfoDao
+        speciesInfoDao: SpeciesInfoDao,
+        weatherCacheDao: WeatherCacheDao,
+        weatherApi: WeatherApiService
     ): PlantRepository {
-        return PlantRepository(plantDao, speciesInfoDao)
+        return PlantRepository(context, plantDao, speciesInfoDao, weatherCacheDao, weatherApi)
     }
 }

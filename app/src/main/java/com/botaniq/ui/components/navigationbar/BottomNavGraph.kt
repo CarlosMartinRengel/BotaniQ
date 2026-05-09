@@ -1,11 +1,17 @@
 package com.botaniq.ui.components.navigationbar
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.botaniq.di.AppModule
+import com.botaniq.ui.plantdetail.PlantFormViewModel
+import com.botaniq.ui.plantdetail.PlantFormViewModelFactory
 import com.botaniq.ui.screens.CameraScreen
 import com.botaniq.ui.screens.InventoryScreen
 import com.botaniq.ui.screens.PlantScreen
@@ -35,11 +41,29 @@ fun BottomNavGraph(
                 },
                 navArgument("photoUri") {
                     type = NavType.StringType; nullable = true; defaultValue = null
-                })
+                }
+            )
         ) { backStackEntry ->
             val plantId = backStackEntry.arguments?.getInt("plantId") ?: 0
             val speciesName = backStackEntry.arguments?.getString("speciesName")
             val photoUri = backStackEntry.arguments?.getString("photoUri")
+
+            val context = LocalContext.current.applicationContext
+            val scope = rememberCoroutineScope()
+
+            val db = AppModule.provideDatabase(context, scope)
+
+            val viewModel: PlantFormViewModel = viewModel(
+                factory = PlantFormViewModelFactory(
+                    AppModule.providePlantRepository(
+                        context = context,
+                        plantDao = AppModule.providePlantDao(db),
+                        speciesInfoDao = AppModule.provideSpeciesInfoDao(db),
+                        weatherCacheDao = AppModule.provideWeatherCacheDao(db),
+                        weatherApi = AppModule.provideWeatherApi()
+                    )
+                )
+            )
 
             PlantScreen(
                 plantId = plantId,
@@ -51,7 +75,8 @@ fun BottomNavGraph(
                 onNavigateToCamera = {
                     navController.navigate("${BottomBarScreen.Diagnostic.route}?isFromForm=true")
                 },
-                navController = navController
+                navController = navController,
+                viewModel = viewModel,
             )
         }
         composable(

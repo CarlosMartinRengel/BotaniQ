@@ -53,15 +53,24 @@ import kotlinx.coroutines.CoroutineScope
 @Composable
 fun InventoryScreen(
     // Obtenemos el contexto de la aplicación
-    context: Context = LocalContext.current,
+    context: Context = LocalContext.current.applicationContext,
+
     // Creamos un scope vinculado al ciclo de vida de esta composición
     scope: CoroutineScope = rememberCoroutineScope(),
     onPlantClick: (Int) -> Unit,
     viewModel: PlantViewModel = viewModel(
         factory = PlantViewModelFactory(
             AppModule.providePlantRepository(
+                context = context,
                 AppModule.providePlantDao(AppModule.provideDatabase(context, scope)),
-                AppModule.provideSpeciesInfoDao(AppModule.provideDatabase(context, scope))
+                AppModule.provideSpeciesInfoDao(AppModule.provideDatabase(context, scope)),
+                weatherCacheDao = AppModule.provideWeatherCacheDao(
+                    AppModule.provideDatabase(
+                        context,
+                        scope
+                    )
+                ),
+                weatherApi = AppModule.provideWeatherApi()
             )
         )
     )

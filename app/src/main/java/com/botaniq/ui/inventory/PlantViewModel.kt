@@ -13,7 +13,7 @@ class PlantViewModel(private val repository: PlantRepository) : ViewModel() {
 
     /**
      * Se conecta al repositorio para obtener la lista de plantas,permitiendo que la UI se modifique
-     * de manera automatica en caso de cambios.
+     * de manera automatica en caso de cambios gracias a StateFlow.
      */
     val plantsState: StateFlow<List<PlantEntity>> = repository.allPlants
         .stateIn(
@@ -24,7 +24,7 @@ class PlantViewModel(private val repository: PlantRepository) : ViewModel() {
 
     fun confirmWatering(plant: PlantEntity) {
         viewModelScope.launch { // Se hace en un hilo secundario -> App sigue funcionando mientras el sistema hace los cálculos
-            repository.confirmWatering(plant)
+            repository.confirmWatering(plant, "Salamanca")
         }
     }
 

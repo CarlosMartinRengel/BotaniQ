@@ -28,8 +28,13 @@
     <!-- Camera Screen -->
     <string name="camera.mode.diagnosis">Diagnosis</string>
     <string name="camera.mode.recognition">Recognition</string>
+    <string name="camera.mode.confirmImage">Confirm Image</string>
+    <string name="camera.mode.recognitionOnResult">Recognize</string>
+    <string name="camera.mode.diagnosisOnResult">Diagnose</string>
+    <string name="camera.mode.plantFormOnResult">Set as Plant Profile Photo</string>
     <string name="camera.mode.access">Camera access</string>
     <string name="camera.mode.permission">"To identify your plant's species or diagnose its health, BotaniQ needs access to your device's camera."</string>
     <string name="camera.mode.open">Open camera</string>
     <string name="camera.mode.toast">"Camera permission is required in Settings to use the scanner"</string>
+    <string name="camera.mode.retryPhoto">Try Again</string>
 </resources>

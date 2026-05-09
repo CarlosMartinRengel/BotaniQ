@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -30,22 +29,18 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.botaniq.R
-import com.botaniq.di.AppModule
 import com.botaniq.ui.components.SpeciesDropdown
 import com.botaniq.ui.plantdetail.PlantFormViewModel
-import com.botaniq.ui.plantdetail.PlantFormViewModelFactory
 import com.botaniq.utils.formatDate
 
 @Composable
@@ -54,26 +49,22 @@ fun PlantScreen(
     speciesName: String?,
     photoUri: String?,
     onBack: () -> Unit,
-    viewModel: PlantFormViewModel = viewModel(
-        factory = PlantFormViewModelFactory(
-            AppModule.providePlantRepository(
-                AppModule.providePlantDao(
-                    AppModule.provideDatabase(
-                        LocalContext.current,
-                        rememberCoroutineScope()
-                    )
-                ),
-                AppModule.provideSpeciesInfoDao(
-                    AppModule.provideDatabase(
-                        LocalContext.current,
-                        rememberCoroutineScope()
-                    )
-                )
-            )
-        )
-    ),
+    onNavigateToCamera: () -> Unit,
+    navController: NavHostController,
+    viewModel: PlantFormViewModel
 ) {
     val state = viewModel.uiState
+
+    val navBackStackEntry = navController.currentBackStackEntry
+    val returnedUri = navBackStackEntry?.savedStateHandle?.get<String>("returnedPhotoUri")
+
+    LaunchedEffect(returnedUri) {
+        if (returnedUri != null) {
+            viewModel.onPhotoUriChange(returnedUri)
+            // Limpiamos el valor para que no se repita al rotar la pantalla
+            navBackStackEntry.savedStateHandle.remove<String>("returnedPhotoUri")
+        }
+    }
 
     // Lógica de inicialización según la variación
     LaunchedEffect(Unit) {
@@ -94,8 +85,7 @@ fun PlantScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
-                    .statusBarsPadding(),
+                    .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -142,7 +132,9 @@ fun PlantScreen(
                 )
                 if (state.isEditMode && plantId == 0 && state.photoUri == null) {
                     Button(
-                        onClick = { /*TODO Lógica cámara */ },
+                        onClick = {
+                            onNavigateToCamera()
+                        },
                         modifier = Modifier.align(Alignment.Center)
                     ) {
                         Text(stringResource(R.string.plant_details_addPhoto))
@@ -261,5 +253,5 @@ fun DetailRow(label: String, value: String) {
         )
     }
 }
-// TODO Cambiar pantalla para que suba la barra de arriba hasta arriba
+
 // TODO Poder editar la foto desde la pantalla de edicion

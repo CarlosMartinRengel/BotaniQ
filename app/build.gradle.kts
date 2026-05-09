@@ -32,6 +32,17 @@ android {
         jvmToolchain(17)
     }
 
+    // Para evitar un error de compilado
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+            // Opcional, para corrutinas y librerías modernas
+            excludes += "DebugProbesKt.bin"
+            excludes += "META-INF/DEPENDENCIES"
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -78,4 +89,10 @@ dependencies {
 
     implementation(libs.tensorflow.lite)
     implementation(libs.tensorflow.lite.support)
+
+    implementation(libs.okhttp.logging)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
+
+    implementation(libs.androidx.work.runtime.ktx)
 }

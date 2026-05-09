@@ -28,9 +28,15 @@
     <!-- Camera Screen -->
     <string name="camera.mode.diagnosis">Diagnóstico</string>
     <string name="camera.mode.recognition">Reconocimiento</string>
+    <string name="camera.mode.confirmImage">Confirmar imagen</string>
+    <string name="camera.mode.recognitionOnResult">Reconocer</string>
+    <string name="camera.mode.diagnosisOnResult">Diagnosticar</string>
+    <string name="camera.mode.plantFormOnResult">Poner como foto de perfil de la planta</string>
     <string name="camera.mode.access">Acceso a la cámara</string>
     <string name="camera.mode.permission">Para poder identificar la especie de tu planta o diagnosticar su estado de salud, BotaniQ necesita acceder a la cámara de tu dispositivo.</string>
     <string name="camera.mode.open">Abrir cámara</string>
     <string name="camera.mode.toast">Es necesario el permiso en Ajustes para usar el escáner</string>
+    <string name="camera.mode.retryPhoto">Volver a intentar</string>
+
 
 </resources>
