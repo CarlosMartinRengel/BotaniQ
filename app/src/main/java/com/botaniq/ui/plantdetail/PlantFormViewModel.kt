@@ -1,13 +1,18 @@
 package com.botaniq.ui.plantdetail
 
+import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.botaniq.data.local.entities.PlantEntity
 import com.botaniq.data.local.entities.SpeciesInfoEntity
 import com.botaniq.data.repository.PlantRepository
+import com.botaniq.utils.FileUtil
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class PlantFormViewModel(private val repository: PlantRepository) : ViewModel() {
@@ -50,29 +55,28 @@ class PlantFormViewModel(private val repository: PlantRepository) : ViewModel() 
     fun loadExistingPlant(plantId: Int) {
         uiState = uiState.copy(isLoading = true)
         viewModelScope.launch {
-            // Buscamos la planta en el flujo de todas las plantas (o podrías añadir getPlantById en Repo)
-            repository.allPlants.collect { plants ->
-                val plant = plants.find { it.id == plantId }
-                plant?.let {
-                    val speciesInfo = repository.getSpeciesInfo(it.speciesName)
-                    uiState = uiState.copy(
-                        plantId = it.id,
-                        nickname = it.nickname,
-                        speciesName = it.speciesName,
-                        photoUri = it.photoUri,
-                        baseWaterFreq = it.baseWaterFreq,
-                        lastWatered = it.lastWateredDate,
-                        nextWatering = it.nextWateringDate,
-                        commonName = speciesInfo?.commonName ?: "",
-                        category = speciesInfo?.category ?: "",
-                        careTips = speciesInfo?.careTips ?: "",
-                        isEditMode = false, // Empezamos en modo lectura (Detalle)
-                        isLoading = false
-                    )
-                }
+            val plant = repository.getPlantById(plantId)
+
+            plant?.let {
+                val speciesInfo = repository.getSpeciesInfo(it.speciesName)
+                uiState = uiState.copy(
+                    plantId = it.id,
+                    nickname = it.nickname,
+                    speciesName = it.speciesName,
+                    photoUri = it.photoUri,
+                    baseWaterFreq = it.baseWaterFreq,
+                    lastWatered = it.lastWateredDate,
+                    nextWatering = it.nextWateringDate,
+                    commonName = speciesInfo?.commonName ?: "",
+                    category = speciesInfo?.category ?: "",
+                    careTips = speciesInfo?.careTips ?: "",
+                    isEditMode = false, // Empezamos en modo lectura (Detalle)
+                    isLoading = false
+                )
             }
         }
     }
+
 
     // Funciones para actualizar el estado desde el formulario
     fun onNicknameChange(newNickname: String) {
@@ -117,8 +121,18 @@ class PlantFormViewModel(private val repository: PlantRepository) : ViewModel() 
         }
     }
 
-    fun onPhotoUriChange(newUri: String) {
-        uiState = uiState.copy(photoUri = newUri)
+    fun onPhotoUriChange(newUri: String, context: Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // Se copia la imagen a la galeria y se actualiza
+                val internalPath = FileUtil.saveImageToInternalStorage(context, newUri.toUri())
+
+                uiState = uiState.copy(photoUri = internalPath)
+
+            } catch (e: Exception) {
+                Log.e("PlantFormViewModel", "Error al persistir la imagen localmente", e)
+            }
+        }
     }
 }
 

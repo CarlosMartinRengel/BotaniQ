@@ -1,6 +1,8 @@
 package com.botaniq.ui.screens
 
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -29,14 +32,18 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
 import com.botaniq.R
 import com.botaniq.ui.components.SpeciesDropdown
@@ -55,27 +62,34 @@ fun PlantScreen(
 ) {
     val state = viewModel.uiState
 
-    val navBackStackEntry = navController.currentBackStackEntry
-    val returnedUri = navBackStackEntry?.savedStateHandle?.get<String>("returnedPhotoUri")
+    val context = LocalContext.current
+
+    val currentEntry by navController.currentBackStackEntryAsState()
+
+    val returnedUriState = currentEntry
+        ?.savedStateHandle
+        ?.getStateFlow<String?>("returnedPhotoUri", null)
+        ?.collectAsState()
+
+    val returnedUri = returnedUriState?.value
 
     LaunchedEffect(returnedUri) {
-        if (returnedUri != null) {
-            viewModel.onPhotoUriChange(returnedUri)
-            // Limpiamos el valor para que no se repita al rotar la pantalla
-            navBackStackEntry.savedStateHandle.remove<String>("returnedPhotoUri")
+        returnedUri?.let { uri ->
+            if (uri.isNotEmpty()) {
+                viewModel.onPhotoUriChange(uri, context)
+
+                // Limpiar la caché del savedStateHandle de manera segura
+                currentEntry?.savedStateHandle?.set("returnedPhotoUri", null)
+            }
         }
     }
 
     // Lógica de inicialización según la variación
-    LaunchedEffect(Unit) {
-        when {
-            plantId != 0 -> viewModel.loadExistingPlant(plantId)
-            speciesName != null && photoUri != null -> viewModel.loadFromIdentification(
-                speciesName,
-                photoUri
-            )
-
-            else -> viewModel.setupManualAdd()
+    LaunchedEffect(plantId) {
+        if (plantId != 0 && viewModel.uiState.plantId == 0) {
+            viewModel.loadExistingPlant(plantId)
+        } else if (plantId == 0 && viewModel.uiState.plantId == 0) {
+            viewModel.setupManualAdd()
         }
     }
 
@@ -118,18 +132,41 @@ fun PlantScreen(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
         ) {
-            // 1. FOTO
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(300.dp)
+//                    .then(
+//                        if (state.isEditMode) Modifier.clickable { onNavigateToCamera() }
+//                        else Modifier
+//                    )
             ) {
                 AsyncImage(
                     model = state.photoUri ?: R.drawable.ic_launcher_foreground,
-                    contentDescription = null,
+                    contentDescription = "Foto de la planta",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
+
+                if (state.isEditMode && plantId != 0) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(16.dp)
+                            .background(Color.Black, CircleShape)
+                            .padding(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Editar foto",
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(28.dp)
+                                .clickable { onNavigateToCamera() }
+                        )
+                    }
+                }
+
                 if (state.isEditMode && plantId == 0 && state.photoUri == null) {
                     Button(
                         onClick = {
@@ -254,4 +291,4 @@ fun DetailRow(label: String, value: String) {
     }
 }
 
-// TODO Poder editar la foto desde la pantalla de edicion
+// TODO Limpiar caché
