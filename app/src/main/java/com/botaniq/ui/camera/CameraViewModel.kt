@@ -1,11 +1,16 @@
 package com.botaniq.ui.camera
 
+import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.botaniq.R
+import com.botaniq.data.tensorflow.TFLiteAnalyzer
+import kotlinx.coroutines.launch
 
 enum class ScannerMode(val titleRes: Int) {
     RECOGNITION(R.string.camera_mode_recognition),
@@ -17,10 +22,12 @@ data class CameraUIState(
     val capturedImageUri: Uri? = null,
     val isPermissionGranted: Boolean = false,
     val isProcessing: Boolean = false,
-    val errorMsg: String? = null
+    val errorMsg: Int? = null,
+    val recognizedSpecies: String? = null,
+    val recognitionConfidence: Float? = null
 )
 
-class CameraViewModel : ViewModel() {
+class CameraViewModel(private val tfLiteAnalyzer: TFLiteAnalyzer) : ViewModel() {
     var uiState by mutableStateOf(CameraUIState())
         private set
 
@@ -37,8 +44,107 @@ class CameraViewModel : ViewModel() {
         uiState = uiState.copy(capturedImageUri = uri)
     }
 
-    // Si se repite la foto
+    // Se repite la foto
     fun clearCapturedImage() {
-        uiState = uiState.copy(capturedImageUri = null)
+        uiState = uiState.copy(
+            capturedImageUri = null,
+            recognizedSpecies = null,
+            recognitionConfidence = null,
+            errorMsg = null
+        )
     }
+
+    fun identifyPlant(bitmap: Bitmap) {
+        uiState = uiState.copy(isProcessing = true, errorMsg = null)
+        viewModelScope.launch {
+
+            val result = tfLiteAnalyzer.analyzeSpecies(bitmap)
+            Log.e(
+                "IA_BOTANIQ",
+                "La IA ha detectado: ${result.speciesName} con una seguridad de: ${result.confidence}"
+            )
+
+            // ENtra en la opcion de "Fondo" es decir no hay planta o no se reconoce ninguna
+            if (result.speciesName.equals("Fondo no planta", ignoreCase = true)) {
+                uiState = uiState.copy(
+                    isProcessing = false,
+                    recognizedSpecies = null,
+                    recognitionConfidence = null,
+                    errorMsg = R.string.ia_mode_background
+                )
+                return@launch
+            }
+
+            if (result.confidence < 0.5f) {
+                uiState = uiState.copy(
+                    isProcessing = false,
+                    recognizedSpecies = null,
+                    recognitionConfidence = null,
+                    errorMsg = R.string.ia_mode_lowConfidence
+                )
+                return@launch
+            }
+
+            uiState = uiState.copy(
+                isProcessing = false,
+                recognizedSpecies = result.speciesName,
+                recognitionConfidence = result.confidence,
+                errorMsg = null
+            )
+        }
+    }
+
+    fun diagnosePlant(bitmap: Bitmap) {
+        uiState = uiState.copy(isProcessing = true, errorMsg = null)
+
+        viewModelScope.launch {
+            val result = tfLiteAnalyzer.analyzeHealth(bitmap)
+            Log.e(
+                "IA_DIAGNOSTICO",
+                "La IA detecta: ${result.anomalyDescription} con confianza: ${result.confidence}"
+            )
+
+            // Clase de rechazo
+            if (result.anomalyDescription.contains("invalida", ignoreCase = true)) {
+                uiState = uiState.copy(
+                    isProcessing = false,
+                    recognizedSpecies = null,
+                    recognitionConfidence = null,
+                    errorMsg = R.string.ia_mode_background
+                )
+                return@launch
+            }
+
+            // Poca confianza
+            if (result.confidence < 0.5f) {
+                uiState = uiState.copy(
+                    isProcessing = false,
+                    recognizedSpecies = null,
+                    recognitionConfidence = null,
+                    errorMsg = R.string.ia_mode_lowConfidence
+                )
+                return@launch
+            }
+
+            // Se detecta algo
+            val statusText = if (result.isHealthy) {
+                "¡Planta Sana!"
+            } else {
+                "Anomalía: ${result.anomalyDescription}"
+            }
+
+            uiState = uiState.copy(
+                isProcessing = false,
+                recognizedSpecies = statusText,
+                recognitionConfidence = result.confidence,
+                errorMsg = null
+            )
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        tfLiteAnalyzer.close()
+    }
+
 }

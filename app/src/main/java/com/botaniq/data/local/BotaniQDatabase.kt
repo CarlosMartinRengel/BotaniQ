@@ -35,7 +35,8 @@ abstract class BotaniQDatabase : RoomDatabase() {
                     context.applicationContext,
                     BotaniQDatabase::class.java,
                     "botaniq_database"
-                ).addCallback(BotaniqDatabaseCallback(scope))
+                )
+                    .addCallback(BotaniqDatabaseCallback(scope))
                     .build()
                 INSTANCE = instance
                 instance
@@ -55,60 +56,83 @@ abstract class BotaniQDatabase : RoomDatabase() {
 
                     val initialSpecies = listOf(
                         SpeciesInfoEntity(
-                            scientificName = "Maranta leuconeura",
-                            commonName = "Planta de la oración",
+                            scientificName = "Alocasia spp",
+                            commonName = "Oreja de Elefante",
+                            category = "Interior",
+                            defaultWateringDays = 5,
+                            careTips = "Necesita humedad ambiental alta y luz indirecta brillante."
+                        ),
+                        SpeciesInfoEntity(
+                            scientificName = "Aloe vera",
+                            commonName = "Sábila",
+                            category = "Suculenta",
+                            defaultWateringDays = 15,
+                            careTips = "Riego escaso y sustrato con gran drenaje. Evitar encharcamiento."
+                        ),
+                        SpeciesInfoEntity(
+                            scientificName = "Begonia spp",
+                            commonName = "Begonia",
+                            category = "Interior",
+                            defaultWateringDays = 4,
+                            careTips = "Evitar mojar las hojas al regar para prevenir hongos. Prefiere semisombra."
+                        ),
+                        SpeciesInfoEntity(
+                            scientificName = "Dionaea muscipula",
+                            commonName = "Venus Atrapamoscas",
+                            category = "Carnívora",
+                            defaultWateringDays = 2,
+                            careTips = "Usar solo agua destilada o de lluvia. Mantener el sustrato siempre húmedo."
+                        ),
+                        SpeciesInfoEntity(
+                            scientificName = "Echeveria elegans",
+                            commonName = "Rosa de Alabastro",
+                            category = "Suculenta",
+                            defaultWateringDays = 12,
+                            careTips = "Resistente a la sequía. Necesita sol directo para mantener su forma compacta."
+                        ),
+                        SpeciesInfoEntity(
+                            scientificName = "Ficus elastica",
+                            commonName = "Árbol del Caucho",
                             category = "Interior",
                             defaultWateringDays = 7,
-                            careTips = "Mantener humedad alta y luz indirecta."
+                            careTips = "Limpiar el polvo de las hojas con un paño húmedo. Sensible a corrientes."
+                        ),
+                        SpeciesInfoEntity(
+                            scientificName = "Epipremnum aureum",
+                            commonName = "Poto (Ivy Arum)",
+                            category = "Interior",
+                            defaultWateringDays = 6,
+                            careTips = "Muy resistente. Tolera niveles bajos de luz, aunque prefiere luz indirecta."
+                        ),
+                        SpeciesInfoEntity(
+                            scientificName = "Monstera deliciosa",
+                            commonName = "Costilla de Adán",
+                            category = "Interior",
+                            defaultWateringDays = 7,
+                            careTips = "Planta trepadora. Requiere tutores y riego cuando el sustrato esté seco."
+                        ),
+                        SpeciesInfoEntity(
+                            scientificName = "Tulipa gesneriana",
+                            commonName = "Tulipán",
+                            category = "Exterior",
+                            defaultWateringDays = 3,
+                            careTips = "Requiere suelos frescos y mucha luz. Reducir riego tras la floración."
                         )
-                        //, TODO añadir especies que se vayan a utilizar
                     )
                     speciesDao.insertInitialSpecies(initialSpecies)
 
                     val testPlants = listOf(
                         PlantEntity(
                             nickname = "La del salón",
-                            speciesName = "Maranta leuconeura",
+                            speciesName = "Monstera deliciosa",
                             photoUri = null,
                             baseWaterFreq = 7,
                             lastWateredDate = System.currentTimeMillis(),
                             nextWateringDate = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
                         ),
                         PlantEntity(
-                            nickname = "La del otro lado",
-                            speciesName = "Maranta leuconeura",
-                            photoUri = null,
-                            baseWaterFreq = 7,
-                            lastWateredDate = System.currentTimeMillis(),
-                            nextWateringDate = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
-                        ),
-                        PlantEntity(
-                            nickname = "La del salón",
-                            speciesName = "Maranta leuconeura",
-                            photoUri = null,
-                            baseWaterFreq = 7,
-                            lastWateredDate = System.currentTimeMillis(),
-                            nextWateringDate = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
-                        ),
-                        PlantEntity(
-                            nickname = "La del baño",
-                            speciesName = "Maranta leuconeura",
-                            photoUri = null,
-                            baseWaterFreq = 7,
-                            lastWateredDate = System.currentTimeMillis(),
-                            nextWateringDate = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
-                        ),
-                        PlantEntity(
-                            nickname = "Juanito pepillo",
-                            speciesName = "Maranta leuconeura",
-                            photoUri = null,
-                            baseWaterFreq = 7,
-                            lastWateredDate = System.currentTimeMillis(),
-                            nextWateringDate = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
-                        ),
-                        PlantEntity(
-                            nickname = "La del otro lado",
-                            speciesName = "Maranta leuconeura",
+                            nickname = "Mi Aloe",
+                            speciesName = "Aloe vera",
                             photoUri = null,
                             baseWaterFreq = 7,
                             lastWateredDate = System.currentTimeMillis(),

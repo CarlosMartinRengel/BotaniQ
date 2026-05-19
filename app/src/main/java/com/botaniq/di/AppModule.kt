@@ -8,6 +8,7 @@ import com.botaniq.data.local.dao.WeatherCacheDao
 import com.botaniq.data.remote.RetrofitInstance
 import com.botaniq.data.remote.WeatherApiService
 import com.botaniq.data.repository.PlantRepository
+import com.botaniq.data.tensorflow.TFLiteAnalyzer
 import kotlinx.coroutines.CoroutineScope
 
 object AppModule {
@@ -16,13 +17,13 @@ object AppModule {
         return BotaniQDatabase.getDatabase(context, scope)
     }
 
-    // 2. Proveer el DAO de Plantas
+    // Proveer el DAO de las entidades
     fun providePlantDao(db: BotaniQDatabase): PlantDao = db.plantDao()
     fun provideSpeciesInfoDao(db: BotaniQDatabase): SpeciesInfoDao = db.speciesInfoDao()
     fun provideWeatherCacheDao(db: BotaniQDatabase): WeatherCacheDao = db.weatherCacheDao()
     fun provideWeatherApi(): WeatherApiService = RetrofitInstance.api
 
-    // 4. Proveer el Repositorio con TODAS sus dependencias
+    // Proveer el repositorio
     fun providePlantRepository(
         context: Context,
         plantDao: PlantDao,
@@ -31,5 +32,10 @@ object AppModule {
         weatherApi: WeatherApiService
     ): PlantRepository {
         return PlantRepository(context, plantDao, speciesInfoDao, weatherCacheDao, weatherApi)
+    }
+
+    // Proveer el analizador de TFLite
+    fun provideTFLiteAnalyzer(context: Context): TFLiteAnalyzer {
+        return TFLiteAnalyzer(context)
     }
 }

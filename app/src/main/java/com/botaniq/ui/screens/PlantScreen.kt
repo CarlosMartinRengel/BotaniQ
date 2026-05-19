@@ -19,8 +19,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -34,6 +39,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,8 +54,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
 import com.botaniq.R
+import com.botaniq.ui.components.DeleteDialog
 import com.botaniq.ui.components.SpeciesDropdown
 import com.botaniq.ui.plantdetail.PlantFormViewModel
+import com.botaniq.ui.theme.GreenSelectedIcon
 import com.botaniq.utils.formatDate
 
 @Composable
@@ -61,10 +71,10 @@ fun PlantScreen(
     viewModel: PlantFormViewModel
 ) {
     val state = viewModel.uiState
-
     val context = LocalContext.current
 
     val currentEntry by navController.currentBackStackEntryAsState()
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
 
     val returnedUriState = currentEntry
         ?.savedStateHandle
@@ -72,6 +82,17 @@ fun PlantScreen(
         ?.collectAsState()
 
     val returnedUri = returnedUriState?.value
+
+    if (showDeleteConfirmDialog) {
+        DeleteDialog(
+            title = stringResource(R.string.dialog_delete_title_single),
+            message = stringResource(R.string.dialog_delete_message_single, state.nickname),
+            onConfirm = {
+                viewModel.deletePlant(onSuccess = onBack)
+            },
+            onDismiss = { showDeleteConfirmDialog = false }
+        )
+    }
 
     LaunchedEffect(returnedUri) {
         returnedUri?.let { uri ->
@@ -84,14 +105,14 @@ fun PlantScreen(
         }
     }
 
-    // Lógica de inicialización según la variación
-    LaunchedEffect(plantId) {
-        if (plantId != 0 && viewModel.uiState.plantId == 0) {
-            viewModel.loadExistingPlant(plantId)
-        } else if (plantId == 0 && viewModel.uiState.plantId == 0) {
-            viewModel.setupManualAdd()
-        }
-    }
+//    // Lógica de inicialización según la variación
+//    LaunchedEffect(plantId) {
+//        if (plantId != 0 && viewModel.uiState.plantId == 0) {
+//            viewModel.loadExistingPlant(plantId)
+//        } else if (plantId == 0 && viewModel.uiState.plantId == 0) {
+//            viewModel.setupManualAdd()
+//        }
+//    }
 
     Scaffold(
         topBar = {
@@ -115,12 +136,22 @@ fun PlantScreen(
                     style = MaterialTheme.typography.titleLarge
                 )
                 if (plantId != 0) {
-                    IconButton(onClick = { viewModel.toggleEditMode() }) {
-                        Icon(
-                            if (state.isEditMode) Icons.Default.Close else Icons.Default.Edit,
-                            contentDescription = "Acción"
-                        )
+                    Row {
+                        IconButton(onClick = { viewModel.toggleEditMode() }) {
+                            Icon(
+                                if (state.isEditMode) Icons.Default.Close else Icons.Default.Edit,
+                                contentDescription = "Acción"
+                            )
+                        }
+                        IconButton(onClick = { showDeleteConfirmDialog = true }) {
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = "Eliminar Planta",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
+
                 } else {
                     Spacer(modifier = Modifier.size(48.dp))
                 }
@@ -186,8 +217,26 @@ fun PlantScreen(
                         value = state.nickname,
                         onValueChange = { viewModel.onNicknameChange(it) },
                         label = { Text(stringResource(R.string.plant_details_nickname)) },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = state.nickname.isBlank() && state.showError,
+                        supportingText = {
+                            if (state.nickname.isBlank() && state.showError) {
+                                Text(
+                                    text = stringResource(R.string.plant_details_required),
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
                     )
+
+                    if (state.showError && state.errorMessage != null) {
+                        Text(
+                            text = stringResource(state.errorMessage),
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -196,6 +245,7 @@ fun PlantScreen(
                         SpeciesDropdown(
                             options = state.availableSpecies,
                             selected = state.speciesName,
+                            isError = state.speciesName.isNullOrBlank() && state.showError,
                             onSelected = { viewModel.onSpeciesChange(it) }
                         )
                     } else {
@@ -205,7 +255,8 @@ fun PlantScreen(
                                 R.string.plant_details_species_label,
                                 state.speciesName ?: ""
                             ),
-                            style = MaterialTheme.typography.bodyLarge
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(bottom = 5.dp)
                         )
                     }
 
@@ -225,6 +276,7 @@ fun PlantScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 16.dp)
+
                     ) {
                         Text(stringResource(R.string.plant_details_savePlant).uppercase())
                     }
@@ -256,6 +308,11 @@ fun PlantScreen(
                     DetailRow(
                         stringResource(R.string.plant_details_nextWatering),
                         formatDate(state.nextWatering)
+                    )
+                    WeatherAnalysisCard(
+                        baseDays = state.baseWaterFreq,
+                        lastWatered = state.lastWatered,
+                        nextWatering = state.nextWatering
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
@@ -291,4 +348,69 @@ fun DetailRow(label: String, value: String) {
     }
 }
 
-// TODO Limpiar caché
+@Composable
+fun WeatherAnalysisCard(baseDays: Int, lastWatered: Long, nextWatering: Long) {
+    // Si no se ha regado nunca, no se muestra nada
+    if (lastWatered == 0L || nextWatering == 0L) return
+
+    val scheduledDays = ((nextWatering - lastWatered) / (1000 * 60 * 60 * 24)).toInt()
+
+    val (icon, title, color) = when {
+        scheduledDays < baseDays -> {
+            Triple(
+                Icons.Default.WbSunny,
+                "Riego adelantado",
+                Color(0xFFE57373)
+            )
+        }
+
+        scheduledDays > baseDays -> {
+            Triple(
+                Icons.Default.Info,
+                "Riego pospuesto",
+                Color(0xFF64B5F6)
+            )
+        }
+
+        else -> {
+            Triple(
+                Icons.Default.Info,
+                "Clima estable",
+                GreenSelectedIcon
+            )
+        }
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.5f))
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(32.dp)
+            )
+            Column(modifier = Modifier.padding(start = 12.dp)) {
+                Text(
+                    text = "Análisis del Clima: $title",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = color
+                )
+                Text(
+                    text = "Frecuencia base: $baseDays días\nProgramado por la IA: $scheduledDays días",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}

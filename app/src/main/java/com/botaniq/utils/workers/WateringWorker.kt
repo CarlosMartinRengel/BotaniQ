@@ -19,16 +19,16 @@ class WateringWorker(
 ) : CoroutineWorker(context, workerParams) {
 
     override suspend fun doWork(): Result {
-        Log.d("TEST_WORKER", "1. ¡El sistema operativo ha despertado al Worker!")
+        Log.d("TEST_WORKER", "1. El sistema ha activado el Worker")
         val plantName = inputData.getString("PLANT_NAME") ?: "Tu planta" //TODO literal
         val plantId = inputData.getInt("PLANT_ID", 0)
 
         try {
             showNotification(plantName, plantId)
-            Log.d("TEST_WORKER", "2. Notificación construida y enviada al NotificationManager")
+            Log.d("TEST_WORKER", "2. Notificación creada y enviada")
             return Result.success()
         } catch (e: Exception) {
-            Log.e("TEST_WORKER", "Error fatal al mostrar la notificación", e)
+            Log.e("TEST_WORKER", "Error al mostrar la notificación", e)
             return Result.failure()
         }
     }

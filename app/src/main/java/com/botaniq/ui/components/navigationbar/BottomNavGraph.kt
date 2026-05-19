@@ -1,6 +1,7 @@
 package com.botaniq.ui.components.navigationbar
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -10,11 +11,16 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.botaniq.di.AppModule
+import com.botaniq.ui.camera.CameraViewModel
+import com.botaniq.ui.camera.CameraViewModelFactory
+import com.botaniq.ui.camera.ScannerMode
 import com.botaniq.ui.plantdetail.PlantFormViewModel
 import com.botaniq.ui.plantdetail.PlantFormViewModelFactory
 import com.botaniq.ui.screens.CameraScreen
 import com.botaniq.ui.screens.InventoryScreen
 import com.botaniq.ui.screens.PlantScreen
+import com.botaniq.utils.ImageUtils
+import kotlinx.coroutines.launch
 
 @Composable
 fun BottomNavGraph(
@@ -90,9 +96,16 @@ fun BottomNavGraph(
             )
         ) { backStackEntry ->
             val isFromForm = backStackEntry.arguments?.getBoolean("isFromForm") ?: false
+            val context = LocalContext.current.applicationContext
+            val analyzer = remember { AppModule.provideTFLiteAnalyzer(context) }
+            val cameraViewModel: CameraViewModel = viewModel(
+                factory = CameraViewModelFactory(analyzer)
+            )
+            val coroutineScope = rememberCoroutineScope()
 
             CameraScreen(
-                isFromForm = isFromForm, // Pasamos el contexto a la pantalla
+                viewModel = cameraViewModel,
+                isFromForm = isFromForm, // Se pasa el contexto a la pantalla
                 onPhotoConfirmedForForm = { uri ->
                     // Se guarda la foto si la pantalla previa es la de formulario
                     navController.previousBackStackEntry
@@ -101,8 +114,25 @@ fun BottomNavGraph(
                     navController.popBackStack()
                 },
                 onAnalyzeWithAI = { uri, mode ->
-                    // Desde el menú, entrada a IA
-                    // TODO: Integrar aquí la lógica de TensorFlow Lite
+                    coroutineScope.launch {
+                        // Transformar la Uri en Bitmap
+                        val bitmap = ImageUtils.uriToOptimizedBitmap(context, uri)
+
+                        if (bitmap != null) {
+                            if (mode == ScannerMode.DIAGNOSTIC) {
+                                cameraViewModel.diagnosePlant(bitmap)
+                            } else {
+                                cameraViewModel.identifyPlant(bitmap)
+                            }
+                        } else {
+                            // TODO Manejar el error
+                        }
+                    }
+                },
+                onNavigateToRegistration = { species, uri ->
+                    cameraViewModel.clearCapturedImage()
+
+                    navController.navigate("plant_screen?speciesName=$species&photoUri=$uri")
                 }
             )
         }

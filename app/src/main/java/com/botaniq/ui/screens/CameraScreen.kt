@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -67,7 +68,8 @@ fun CameraScreen(
     viewModel: CameraViewModel = viewModel(),
     isFromForm: Boolean = false,
     onPhotoConfirmedForForm: (Uri) -> Unit = {},
-    onAnalyzeWithAI: (Uri, ScannerMode) -> Unit = { _, _ -> }
+    onAnalyzeWithAI: (Uri, ScannerMode) -> Unit = { _, _ -> },
+    onNavigateToRegistration: (String, Uri) -> Unit = { _, _ -> }
 ) {
     val context = LocalContext.current
     val state = viewModel.uiState
@@ -79,7 +81,7 @@ fun CameraScreen(
             if (!isGranted) {
                 makeText(
                     context,
-                    "NO",
+                    "Sin permiso de cámara",
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -94,35 +96,137 @@ fun CameraScreen(
 
         viewModel.onPermissionResult(hasPermission)
     }
+    //1. Capa normal
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (state.isPermissionGranted) {
+            if (state.capturedImageUri != null) {
+                ImageConfirmationContent(
+                    imageUri = state.capturedImageUri,
+                    mode = state.selectedMode,
+                    onRetry = { viewModel.clearCapturedImage() },
+                    isFromForm = isFromForm,
+                    onConfirm = {
+                        if (isFromForm) {
+                            onPhotoConfirmedForForm(state.capturedImageUri)
+                        } else {
+                            onAnalyzeWithAI(state.capturedImageUri, state.selectedMode)
+                        }
+                    }
+                )
+            } else {
+                ScannerContent(
+                    state = state,
+                    onModeChange = { viewModel.setScannerMode(it) },
+                    onImageObtained = { uri -> viewModel.onImageCaptured(uri) },
+                    isFromForm = isFromForm
+                )
 
-    if (state.isPermissionGranted) {
-        if (state.capturedImageUri != null) {
-            ImageConfirmationContent(
-                imageUri = state.capturedImageUri,
-                mode = state.selectedMode,
-                onRetry = { viewModel.clearCapturedImage() },
-                isFromForm = isFromForm,
-                onConfirm = {
-                    if (isFromForm) {
-                        onPhotoConfirmedForForm(state.capturedImageUri)
-                    } else {
-                        // TODO onAnalyzeWithAI(state.capturedImageUri, state.selectedMode)
+            }
+        } else {
+            PermissionRequestContent(onRequestPermission = {
+                permissionLauncher.launch(Manifest.permission.CAMERA)
+            })
+        }
+
+        // 2. Pantalla de carga y Resultados de la IA
+        if (state.isProcessing || state.recognizedSpecies != null || state.errorMsg != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.7f)), // Fondo oscurecido elegante
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f) // Ocupa el 80% del ancho
+                        .background(
+                            MaterialTheme.colorScheme.surface,
+                            shape = MaterialTheme.shapes.medium
+                        )
+                        .padding(24.dp)
+                ) {
+                    if (state.isProcessing) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "La IA está analizando la planta...",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Center
+                        )
+                    } else if (state.errorMsg != null) {
+                        Icon(
+                            imageVector = Icons.Default.FlashOff,
+                            contentDescription = "Error",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "¡Ups!",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = stringResource(state.errorMsg),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Button(
+                            onClick = { viewModel.clearCapturedImage() },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.camera_mode_retryPhoto))
+                        }
+                    } else if (state.recognizedSpecies != null) {
+                        val porcentaje = ((state.recognitionConfidence ?: 0f) * 100).toInt()
+
+                        Icon(
+                            imageVector = Icons.Default.PhotoLibrary, // O el icono de planta que prefieras
+                            contentDescription = "Éxito",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = state.recognizedSpecies,
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = "Confianza: $porcentaje%",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Button(
+                            onClick = {
+                                val species = state.recognizedSpecies ?: ""
+                                val uri = state.capturedImageUri
+                                if (uri != null) {
+                                    onNavigateToRegistration(species, uri)
+                                }
+
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Registrar planta")
+                        }
+                        Button(
+                            onClick = {
+                                viewModel.clearCapturedImage()
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Volver a intentar")
+                        }
                     }
                 }
-            )
-        } else {
-            ScannerContent(
-                state = state,
-                onModeChange = { viewModel.setScannerMode(it) },
-                onImageObtained = { uri -> viewModel.onImageCaptured(uri) },
-                isFromForm = isFromForm
-            )
-
+            }
         }
-    } else {
-        PermissionRequestContent(onRequestPermission = {
-            permissionLauncher.launch(Manifest.permission.CAMERA)
-        })
     }
 }
 
@@ -367,4 +471,6 @@ fun ImageConfirmationContent(
         }
     }
 }
+
+
 

@@ -18,6 +18,7 @@ import com.botaniq.utils.workers.WateringWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -86,6 +87,7 @@ class PlantRepository(
                 val nextDateFormatted =
                     formatter.format(Date(currentTime + (daysAdded * 24 * 60 * 60 * 1000).toLong()))
 
+                // Comprobacion en el Logcat de que los calculos son correctos
                 Log.d("ALGORITMO_RIEGO", "--- RESULTADOS DEL CÁLCULO ---")
                 Log.d("ALGORITMO_RIEGO", "Días base de la planta: ${plant.baseWaterFreq}")
                 Log.d("ALGORITMO_RIEGO", "Temperatura media (Forecast): $avgTemp")
@@ -123,27 +125,28 @@ class PlantRepository(
 
     private fun scheduleWateringNotification(plantId: Int, plantName: String, nextWatering: Long) {
 
-        val currentTime = System.currentTimeMillis()
-        val delayInMillis = nextWatering - currentTime
+
+//        val currentTime = System.currentTimeMillis()
+//        val delayInMillis = nextWatering - currentTime
+        // Baja la notificacion a 10s
+        val delayInMillis = 20000L
 
         // En caso de que la fecha salga mal
         if (delayInMillis <= 0) return
-
-        // Baja la notificacion a 10s val delayInMillis = 10000L
 
         val inputData = Data.Builder()
             .putString("PLANT_NAME", plantName)
             .putInt("PLANT_ID", plantId)
             .build()
 
-        // Creamos la petición de trabajo de un solo uso con el retraso calculado
+        // Petición de trabajo de un unico uso con retraso aplicado
         val workRequest = OneTimeWorkRequestBuilder<WateringWorker>()
             .setInitialDelay(delayInMillis, TimeUnit.MILLISECONDS)
             .setInputData(inputData)
             .build()
 
-        // enqueueUniqueWork con REPLACE permite que WorkManager borre la notificacion antigua y ponga
-        // una nueva si el usuario riega la planta antes de tiempo
+        // enqueueUniqueWork con ExistingWorkPolicy.REPLACE permite que WorkManager borre la notificacion antigua y ponga
+        // una nueva en caso de que el usuario riegue la planta antes de tiempo
         WorkManager.getInstance(context).enqueueUniqueWork(
             "Watering_Plant_$plantId",
             ExistingWorkPolicy.REPLACE,
@@ -172,6 +175,45 @@ class PlantRepository(
             if (humidity < 30.0) modifier -= 0.1
 
             return baseDays * modifier
+        }
+    }
+
+    suspend fun deletePlantWithImages(plant: PlantEntity) {
+        withContext(Dispatchers.IO) {
+            plantDao.deletePlant(plant)
+
+            plant.photoUri?.let { path ->
+                val file = File(path)
+                if (file.exists()) {
+                    file.delete()
+                    Log.d("CLEANUP", "Archivo eliminado al borrar planta: ${file.name}")
+                }
+            }
+        }
+    }
+
+    suspend fun cleanImages() {
+        withContext(Dispatchers.IO) {
+            Log.d("CLEANUP", "Iniciando proceso de limpieza general...")
+            try {
+                val activePlants = plantDao.getAllPlantsSync()
+                val activeUris = activePlants.mapNotNull { it.photoUri }
+
+                val internalFolder = context.filesDir
+                val filesOnDisk = internalFolder.listFiles { file ->
+                    file.name.startsWith("plant_") && file.name.endsWith(".jpg")
+                }
+
+                filesOnDisk?.forEach { file ->
+                    if (!activeUris.contains(file.absolutePath)) {
+                        val deleted = file.delete()
+                        if (deleted) Log.d("CLEANUP", "Eliminado archivo huérfano: ${file.name}")
+                    }
+                }
+
+            } catch (e: Exception) {
+                Log.e("CLEANUP", "Error en la limpieza de archivos", e)
+            }
         }
     }
 }

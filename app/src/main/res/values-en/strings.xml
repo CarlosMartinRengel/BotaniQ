@@ -21,6 +21,7 @@
     <string name="plant_details.nextWatering">Next watering</string>
     <string name="plant_details.freqCustom">Custom frequency</string>
     <string name="plant_details.savePlant">Save plant</string>
+    <string name="plant_details.blankError">Nickname and species are required.</string>
 
     <string name="species_dropdown.specie">Species</string>
     <string name="species_dropdown.selectSpecie">Select a species</string>
@@ -37,4 +38,12 @@
     <string name="camera.mode.open">Open camera</string>
     <string name="camera.mode.toast">"Camera permission is required in Settings to use the scanner"</string>
     <string name="camera.mode.retryPhoto">Try Again</string>
+
+    <!-- Delete -->
+    <string name="dialog_delete_title_multiple">Delete Plants</string>
+    <string name="dialog_delete_message_multiple">Are you sure you want to delete the %1$d selected plants? This action cannot be undone.</string>
+    <string name="dialog_delete_title_single">Delete Plant</string>
+    <string name="dialog_delete_message_single">Are you sure you want to delete \'%1$s\'? This action cannot be undone.</string>
+    <string name="dialog_delete_confirm">Delete</string>
+    <string name="dialog_delete_cancel">Cancel</string>
 </resources>

@@ -21,6 +21,10 @@
     <string name="plant_details.nextWatering">Próximo riego</string>
     <string name="plant_details.freqCustom">Frecuencia personalizada</string>
     <string name="plant_details.savePlant">Guardar planta</string>
+    <string name="plant_details.blankError">El apodo y la especie son obligatorios</string>
+    <string name="plant_details.required">Este campo es obligatorio</string>
+    <string name="plant_details.requiredSpecie">Debes seleccionar una especie</string>
+    <string name="plant_details_saveError">Error al guardar en la base de datos</string>
 
     <string name="species_dropdown.specie">Especie</string>
     <string name="species_dropdown.selectSpecie">Selecciona una especie</string>
@@ -31,12 +35,23 @@
     <string name="camera.mode.confirmImage">Confirmar imagen</string>
     <string name="camera.mode.recognitionOnResult">Reconocer</string>
     <string name="camera.mode.diagnosisOnResult">Diagnosticar</string>
-    <string name="camera.mode.plantFormOnResult">Poner como foto de perfil de la planta</string>
+    <string name="camera.mode.plantFormOnResult">Seleccionar</string>
     <string name="camera.mode.access">Acceso a la cámara</string>
     <string name="camera.mode.permission">Para poder identificar la especie de tu planta o diagnosticar su estado de salud, BotaniQ necesita acceder a la cámara de tu dispositivo.</string>
     <string name="camera.mode.open">Abrir cámara</string>
     <string name="camera.mode.toast">Es necesario el permiso en Ajustes para usar el escáner</string>
     <string name="camera.mode.retryPhoto">Volver a intentar</string>
 
+    <string name="ia.mode.background">No se ha detectado ninguna planta válida. Intenta enfocar mejor la maceta.</string>
+    <string name="ia.mode.lowConfidence">No estoy seguro de qué especie es. ¡Intenta acercarte o mejorar la luz!</string>
+
+
+    <!-- Delete -->
+    <string name="dialog_delete_title_multiple">Eliminar plantas</string>
+    <string name="dialog_delete_message_multiple">¿Estás seguro de que quieres eliminar las %1$d plantas seleccionadas? Esta acción no se puede deshacer.</string>
+    <string name="dialog_delete_title_single">Eliminar planta</string>
+    <string name="dialog_delete_message_single">¿Estás seguro de que quieres eliminar a \'%1$s\'? Esta acción no se puede deshacer.</string>
+    <string name="dialog_delete_confirm">Eliminar</string>
+    <string name="dialog_delete_cancel">Cancelar</string>
 
 </resources>

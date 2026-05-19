@@ -5,26 +5,29 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.botaniq.data.UserPreferenceRepository
 import com.botaniq.di.AppModule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class WateringReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        // Comprobamos que es la acción correcta
+        // Comprobar que es la acción correcta
         if (intent.action == "com.botaniq.ACTION_WATER_PLANT") {
             val plantId = intent.getIntExtra("PLANT_ID", -1)
 
             if (plantId != -1) {
-                // goAsync() le dice a Android: "Dame unos segundos más, voy a hacer trabajo en segundo plano"
+                // Permite que el sistema se pause unos segundos para poder obtener la informacion
                 val pendingResult = goAsync()
 
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
-                        // 1. Inyección manual de dependencias
                         val appContext = context.applicationContext
                         val db = AppModule.provideDatabase(appContext, this)
+                        val preferenceRepository = UserPreferenceRepository(appContext)
+                        val currentCity = preferenceRepository.selectedCityFlow.first()
                         val repository = AppModule.providePlantRepository(
                             context = appContext,
                             plantDao = AppModule.providePlantDao(db),
@@ -33,17 +36,15 @@ class WateringReceiver : BroadcastReceiver() {
                             weatherApi = AppModule.provideWeatherApi()
                         )
 
-                        // 2. Obtener la planta y calcular el nuevo riego
                         val plant = repository.getPlantById(plantId)
                         if (plant != null) {
-                            repository.confirmWatering(plant, "Salamanca") // TODO: Ciudad dinámica
+                            repository.confirmWatering(plant, currentCity)
                             Log.d(
                                 "WateringReceiver",
                                 "¡Planta ${plant.nickname} regada desde la notificación!"
                             )
                         }
 
-                        // 3. Ocultar (cancelar) la notificación
                         val notificationManager =
                             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                         notificationManager.cancel(plantId)
@@ -51,7 +52,6 @@ class WateringReceiver : BroadcastReceiver() {
                     } catch (e: Exception) {
                         Log.e("WateringReceiver", "Error al confirmar riego en segundo plano", e)
                     } finally {
-                        // Avisar siempre del fin
                         pendingResult.finish()
                     }
                 }

@@ -6,16 +6,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.net.toUri
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.botaniq.R
 import com.botaniq.data.local.entities.PlantEntity
 import com.botaniq.data.local.entities.SpeciesInfoEntity
 import com.botaniq.data.repository.PlantRepository
 import com.botaniq.utils.FileUtil
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-class PlantFormViewModel(private val repository: PlantRepository) : ViewModel() {
+class PlantFormViewModel(
+    private val repository: PlantRepository,
+    savedStateHandle: SavedStateHandle
+) : ViewModel() {
 
     // Estado de la UI que combina datos de Planta y Especie
     var uiState by mutableStateOf(PlantFormState())
@@ -23,58 +30,72 @@ class PlantFormViewModel(private val repository: PlantRepository) : ViewModel() 
 
     // Carga la lista de especies para el modo "Añadir Manual"
     init {
+        val navSpeciesName: String? = savedStateHandle["speciesName"]
+        val navPhotoUri: String? = savedStateHandle["photoUri"]
+        val navPlantId: Int = savedStateHandle["plantId"] ?: 0
+
         viewModelScope.launch {
             val speciesList = repository.getAllSpecies()
             uiState = uiState.copy(availableSpecies = speciesList)
+
+
+            if (navPlantId > 0) {
+                // Si el id de la planta es distinto de 0, se estan consultando los detalles de una planta
+                loadExistingPlant(navPlantId)
+            } else if (!navSpeciesName.isNullOrBlank()) {
+                // Se sabe la especie, usuario viene desde la IA
+                loadFromIdentification(navSpeciesName, navPhotoUri)
+            } else {
+                // Registro normal, no se rellena nada previamente
+                setupManualAdd()
+            }
         }
     }
 
     // VARIANTE 1. Carga desde pantalla IA
-    fun loadFromIdentification(speciesName: String, photoUri: String) {
-        viewModelScope.launch {
-            val speciesInfo = repository.getSpeciesInfo(speciesName)
-            uiState = uiState.copy(
-                speciesName = speciesName,
-                photoUri = photoUri,
-                commonName = speciesInfo?.commonName ?: "",
-                category = speciesInfo?.category ?: "",
-                careTips = speciesInfo?.careTips ?: "",
-                // Si la especie existe, se sugiere su frecuencia, si no, 7 por defecto
-                baseWaterFreq = speciesInfo?.defaultWateringDays ?: 7,
-                isEditMode = true
-            )
-        }
+    private suspend fun loadFromIdentification(speciesName: String, photoUri: String?) {
+        val speciesInfo = repository.getSpeciesInfo(speciesName)
+        uiState = uiState.copy(
+            speciesName = speciesName,
+            photoUri = photoUri,
+            commonName = speciesInfo?.commonName ?: "",
+            category = speciesInfo?.category ?: "",
+            careTips = speciesInfo?.careTips ?: "",
+            // Si la especie existe, se sugiere su frecuencia, si no, 7 por defecto
+            baseWaterFreq = speciesInfo?.defaultWateringDays ?: 7,
+            isEditMode = true
+        )
+
     }
 
     // VARIANTE 2: Registro Manual
-    fun setupManualAdd() {
+    private fun setupManualAdd() {
         uiState = uiState.copy(isEditMode = true, plantId = 0)
     }
 
     // VARIANTE 3: Detalles
-    fun loadExistingPlant(plantId: Int) {
+    private suspend fun loadExistingPlant(plantId: Int) {
         uiState = uiState.copy(isLoading = true)
-        viewModelScope.launch {
-            val plant = repository.getPlantById(plantId)
+        val plant = repository.getPlantById(plantId)
 
-            plant?.let {
-                val speciesInfo = repository.getSpeciesInfo(it.speciesName)
-                uiState = uiState.copy(
-                    plantId = it.id,
-                    nickname = it.nickname,
-                    speciesName = it.speciesName,
-                    photoUri = it.photoUri,
-                    baseWaterFreq = it.baseWaterFreq,
-                    lastWatered = it.lastWateredDate,
-                    nextWatering = it.nextWateringDate,
-                    commonName = speciesInfo?.commonName ?: "",
-                    category = speciesInfo?.category ?: "",
-                    careTips = speciesInfo?.careTips ?: "",
-                    isEditMode = false, // Empezamos en modo lectura (Detalle)
-                    isLoading = false
-                )
-            }
+        plant?.let {
+            val speciesInfo = repository.getSpeciesInfo(it.speciesName)
+            uiState = uiState.copy(
+                plantId = it.id,
+                nickname = it.nickname,
+                speciesName = it.speciesName,
+                photoUri = it.photoUri,
+                baseWaterFreq = it.baseWaterFreq,
+                lastWatered = it.lastWateredDate,
+                nextWatering = it.nextWateringDate,
+                commonName = speciesInfo?.commonName ?: "",
+                category = speciesInfo?.category ?: "",
+                careTips = speciesInfo?.careTips ?: "",
+                isEditMode = false, // Empezamos en modo detalles
+                isLoading = false
+            )
         }
+
     }
 
 
@@ -101,23 +122,40 @@ class PlantFormViewModel(private val repository: PlantRepository) : ViewModel() 
 
 
     fun savePlant(onSuccess: () -> Unit) {
-        viewModelScope.launch {
-            val plant = PlantEntity(
-                id = uiState.plantId, // Si es 0, Room inserta; si existe, actualiza
-                nickname = uiState.nickname,
-                speciesName = uiState.speciesName ?: "Desconocida",
-                photoUri = uiState.photoUri,
-                baseWaterFreq = uiState.baseWaterFreq,
-                lastWateredDate = uiState.lastWatered,
-                nextWateringDate = uiState.nextWatering
+        // Validacion datos
+        if (uiState.nickname.isBlank() || uiState.speciesName.isNullOrBlank()) {
+            uiState = uiState.copy(
+                showError = true,
+                errorMessage = R.string.plant_details_blankError
             )
+            return
+        }
 
-            if (uiState.plantId == 0) {
-                repository.registerPlant(plant)
-            } else {
-                repository.updatePlant(plant)
+        viewModelScope.launch {
+            try {
+                val plant = PlantEntity(
+                    id = uiState.plantId, // Si es 0, Room inserta; si existe, actualiza
+                    nickname = uiState.nickname,
+                    speciesName = uiState.speciesName!!,
+                    photoUri = uiState.photoUri,
+                    baseWaterFreq = uiState.baseWaterFreq,
+                    lastWateredDate = uiState.lastWatered,
+                    nextWateringDate = uiState.nextWatering
+                )
+
+                if (uiState.plantId == 0) {
+                    repository.registerPlant(plant)
+                } else {
+                    repository.updatePlant(plant)
+                }
+                onSuccess()
+            } catch (e: Exception) {
+                Log.e("ERROR", e.toString())
+                uiState = uiState.copy(
+                    showError = true,
+                    errorMessage = R.string.plant_details_saveError
+                )
             }
-            onSuccess()
         }
     }
 
@@ -132,6 +170,25 @@ class PlantFormViewModel(private val repository: PlantRepository) : ViewModel() 
             } catch (e: Exception) {
                 Log.e("PlantFormViewModel", "Error al persistir la imagen localmente", e)
             }
+        }
+    }
+
+    fun deletePlant(onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            val plant = PlantEntity(
+                id = uiState.plantId,
+                nickname = uiState.nickname,
+                speciesName = uiState.speciesName ?: "Desconocida",
+                photoUri = uiState.photoUri,
+                baseWaterFreq = uiState.baseWaterFreq,
+                lastWateredDate = uiState.lastWatered,
+                nextWateringDate = uiState.nextWatering
+            )
+            // La foto se borra siempre que se elimine la planta
+            withContext(NonCancellable) {
+                repository.deletePlantWithImages(plant)
+            }
+            onSuccess()
         }
     }
 }
@@ -150,5 +207,7 @@ data class PlantFormState(
     val careTips: String = "",
     val availableSpecies: List<SpeciesInfoEntity> = emptyList(),
     val isEditMode: Boolean = false, // Por defecto true para registros nuevos
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val showError: Boolean = false,
+    val errorMessage: Int? = null
 )

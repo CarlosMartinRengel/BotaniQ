@@ -46,7 +46,7 @@ fun CameraPreview(
                 val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
                 try {
-                    // Quitar usos anteriores para evitar conflictos
+                    // Quita usos anteriores para evitar conflictos
                     cameraProvider.unbindAll()
 
                     // Conectar la cámara al ciclo de vida de la pantalla

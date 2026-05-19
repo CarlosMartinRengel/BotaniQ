@@ -14,6 +14,9 @@ interface PlantDao {
     @Query("SELECT * FROM plants_inventory")
     fun getAllPlants(): Flow<List<PlantEntity>>
 
+    @Query("SELECT * FROM plants_inventory")
+    suspend fun getAllPlantsSync(): List<PlantEntity>
+
     @Query("SELECT * FROM plants_inventory WHERE id = :id")
     suspend fun getPlantByIdSync(id: Int): PlantEntity?
 
@@ -25,4 +28,7 @@ interface PlantDao {
 
     @Delete
     suspend fun deletePlant(plant: PlantEntity)
+
+    @Query("DELETE FROM plants_inventory")
+    suspend fun deleteAllPlants()
 }

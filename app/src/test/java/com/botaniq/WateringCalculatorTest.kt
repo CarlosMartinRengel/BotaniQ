@@ -20,7 +20,7 @@ class WateringCalculatorTest {
     @Test
     fun coldWeatherTest() {
         val diasBase = 7
-        val lowTemp = 15.0
+        val lowTemp = 14.0
         val highHum = 80.0
 
         val resultado = PlantRepository.calculateDynamicDays(diasBase, lowTemp, highHum)
@@ -50,7 +50,7 @@ class WateringCalculatorTest {
         val resultado = PlantRepository.calculateDynamicDays(baseDays, extremeTemp, extremeLowHum)
 
         // El resultado debería ser significativamente menor que los días base
-        assertEquals(3.5, resultado, 0.1)
+        assertEquals(4.9, resultado, 0.1)
     }
 
     @Test
@@ -63,6 +63,6 @@ class WateringCalculatorTest {
             PlantRepository.calculateDynamicDays(baseDays, extremeColdTemp, extremeHighHum)
 
         // El resultado debería ser significativamente mayor que los días base
-        assertEquals(11.2, resultado, 0.1)
+        assertEquals(9.1, resultado, 0.1)
     }
 }

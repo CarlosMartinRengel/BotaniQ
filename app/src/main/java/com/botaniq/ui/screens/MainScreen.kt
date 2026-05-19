@@ -32,6 +32,7 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.botaniq.ui.components.RequestNotificationPermission
 import com.botaniq.ui.components.navigationbar.BottomBarScreen
 import com.botaniq.ui.components.navigationbar.BottomNavGraph
 import com.botaniq.ui.theme.BrownMenu
@@ -39,6 +40,8 @@ import com.botaniq.ui.theme.GreenSelectedIcon
 
 @Composable
 fun MainScreen() {
+
+    RequestNotificationPermission()
     val navController = rememberNavController()
 
     Scaffold(
@@ -70,7 +73,7 @@ fun BottomBar(navController: NavHostController) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF5D4037)) // El color marrón tierra
+            .background(Color(0xFF5D4037))
     ) {
         Row(
             modifier = Modifier

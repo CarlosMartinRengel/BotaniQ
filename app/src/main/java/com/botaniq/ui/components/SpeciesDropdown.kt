@@ -23,7 +23,8 @@ import com.botaniq.data.local.entities.SpeciesInfoEntity
 fun SpeciesDropdown(
     options: List<SpeciesInfoEntity>,
     selected: String?,
-    onSelected: (SpeciesInfoEntity) -> Unit
+    onSelected: (SpeciesInfoEntity) -> Unit,
+    isError: Boolean
 ) {
     // Estado para controlar si el menú está desplegado o no
     var expanded by remember { mutableStateOf(false) }
@@ -41,6 +42,12 @@ fun SpeciesDropdown(
             label = { Text(stringResource(R.string.species_dropdown_specie)) },
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            isError = isError,
+            supportingText = {
+                if (isError) {
+                    Text(text = stringResource(R.string.plant_details_requiredSpecie))
+                }
             },
             modifier = Modifier
                 .menuAnchor(
