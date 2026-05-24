@@ -32,8 +32,25 @@ class PlantViewModel(
     private val _currentCity = MutableStateFlow("Salamanca")
     val currentCity: StateFlow<String> = _currentCity.asStateFlow()
 
-    val availableCities =
-        listOf("Salamanca", "Madrid", "Zamora", "Barcelona", "Sevilla", "Valencia")
+    val availableCities = listOf(
+        "Alicante",
+        "Barcelona",
+        "Bilbao",
+        "Córdoba",
+        "Gijón",
+        "Las Palmas de Gran Canaria",
+        "Madrid",
+        "Málaga",
+        "Murcia",
+        "Palma de Mallorca",
+        "Salamanca",
+        "Sevilla",
+        "Valencia",
+        "Valladolid",
+        "Vigo",
+        "Zamora",
+        "Zaragoza"
+    ).sorted()
 
     init {
         viewModelScope.launch {

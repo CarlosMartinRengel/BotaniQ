@@ -97,6 +97,7 @@ class PlantRepository(
                 Log.d("ALGORITMO_RIEGO", "------------------------------")
 
             } catch (e: Exception) {
+                Log.e("WEATHER_API", "Error al obtener clima", e)
                 val cache = weatherCacheDao.getWeatherCache()
                 if (cache != null) {
                     daysAdded =
@@ -125,11 +126,10 @@ class PlantRepository(
 
     private fun scheduleWateringNotification(plantId: Int, plantName: String, nextWatering: Long) {
 
-
-//        val currentTime = System.currentTimeMillis()
-//        val delayInMillis = nextWatering - currentTime
+        val currentTime = System.currentTimeMillis()
+        val delayInMillis = nextWatering - currentTime
         // Baja la notificacion a 10s
-        val delayInMillis = 20000L
+        //val delayInMillis = 20000L
 
         // En caso de que la fecha salga mal
         if (delayInMillis <= 0) return
@@ -166,15 +166,27 @@ class PlantRepository(
         internal fun calculateDynamicDays(baseDays: Int, temp: Double, humidity: Double): Double {
             var modifier = 1.0
 
-            // Mucho calor, se riega antes
-            if (temp > 28.0) modifier -= 0.2
-            if (temp < 15.0) modifier += 0.2
+            // Al obtenerse las medias de temperaturas de  dias completos, hay que rebajar los limites de la temperatura
+            // debido a las discrepancias de temperatura entre el día y la noche
+            when {
+                temp >= 24.0 -> modifier -= 0.3
+                temp >= 20.0 -> modifier -= 0.15
+                temp <= 8.0 -> modifier += 0.3
+                temp <= 12.0 -> modifier += 0.2
+            }
 
-            // Mucha humedad, menos riego
-            if (humidity > 60.0) modifier += 0.1
-            if (humidity < 30.0) modifier -= 0.1
+            when {
+                humidity <= 35.0 -> modifier -= 0.15
+                humidity <= 45.0 -> modifier -= 0.05
+                humidity >= 75.0 -> modifier += 0.2
+                humidity >= 65.0 -> modifier += 0.1
+            }
 
-            return baseDays * modifier
+            // Para que no pase mucho tiempo sin regarse o regandose demasiado frecuente
+            return (baseDays * modifier).coerceIn(
+                minimumValue = baseDays * 0.5,
+                maximumValue = baseDays * 1.5
+            )
         }
     }
 

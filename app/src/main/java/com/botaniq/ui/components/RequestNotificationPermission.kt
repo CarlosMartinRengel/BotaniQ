@@ -3,6 +3,7 @@ package com.botaniq.ui.components
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -21,7 +22,11 @@ fun RequestNotificationPermission() {
             contract = ActivityResultContracts.RequestPermission(),
             onResult = { isGranted ->
                 if (!isGranted) {
-                    // TODO aviso de que sin notificaciones no se pueden avisar de los riegos
+                    Toast.makeText(
+                        context,
+                        "Sin permisos de notificación, BotaniQ no podrá avisarte cuándo regar tus plantas.",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         )

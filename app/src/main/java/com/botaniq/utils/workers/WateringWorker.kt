@@ -7,11 +7,11 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.botaniq.MainActivity
 import com.botaniq.R
-
 
 class WateringWorker(
     private val context: Context,
@@ -20,7 +20,10 @@ class WateringWorker(
 
     override suspend fun doWork(): Result {
         Log.d("TEST_WORKER", "1. El sistema ha activado el Worker")
-        val plantName = inputData.getString("PLANT_NAME") ?: "Tu planta" //TODO literal
+
+        val plantName = inputData.getString("PLANT_NAME")
+            ?: context.getString(R.string.worker_default_plant_name)
+
         val plantId = inputData.getInt("PLANT_ID", 0)
 
         try {
@@ -40,10 +43,10 @@ class WateringWorker(
 
         val channel = NotificationChannel(
             channelId,
-            "Recordatorio de riego",
+            context.getString(R.string.notification_channel_name),
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = "Notificacion para recordar el riego de plantas" // TODO literal
+            description = context.getString(R.string.notification_channel_desc)
         }
         notificationManager.createNotificationChannel(channel)
 
@@ -72,15 +75,16 @@ class WateringWorker(
         )
 
         val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // TODO Cambiar icono
-            .setContentTitle("¡Hora de regar!") // TODO literal
-            .setContentText("Tu $plantName necesita agua según nuestro análisis.") // TODO literal
+            .setSmallIcon(R.drawable.botaniq_stat_watering)
+            .setColor(ContextCompat.getColor(context, R.color.botaniq_launcher_background))
+            .setContentTitle(context.getString(R.string.notification_watering_title))
+            .setContentText(context.getString(R.string.notification_watering_body, plantName))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .addAction(
-                0, // TODO icono y literal en planta regada
-                "Planta regada",
+                0,
+                context.getString(R.string.notification_action_watered),
                 actionPendingIntent
             )
             .build()

@@ -65,7 +65,7 @@ fun SpeciesDropdown(
         ) {
             if (options.isEmpty()) {
                 DropdownMenuItem(
-                    text = { Text("No hay especies registradas") },
+                    text = { Text(stringResource(R.string.species_dropdown_empty)) },
                     onClick = { expanded = false }
                 )
             } else {

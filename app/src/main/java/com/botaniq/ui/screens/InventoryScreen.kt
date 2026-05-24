@@ -123,7 +123,7 @@ fun InventoryScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "TUS PLANTAS", //TODO Literal
+                    text = stringResource(R.string.inventory_title),
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.Black,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -148,7 +148,7 @@ fun InventoryScreen(
 
             if (plants.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Aún no tienes plantas. ¡Añade la primera!") //TODO Literal
+                    Text(stringResource(R.string.inventory_no_plants))
                 }
             } else {
                 LazyColumn(
@@ -194,10 +194,16 @@ fun InventoryScreen(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = { selectedPlantIds = emptySet() }) {
-                        Icon(Icons.Default.Close, contentDescription = "Cancelar selección")
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = stringResource(R.string.content_desc_cancel_selection)
+                        )
                     }
                     Text(
-                        text = "${selectedPlantIds.size} seleccionadas",
+                        text = stringResource(
+                            R.string.inventory_selected_plants,
+                            selectedPlantIds.size
+                        ),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -205,7 +211,7 @@ fun InventoryScreen(
                 IconButton(onClick = { showDeleteDialog = true }) {
                     Icon(
                         Icons.Default.Delete,
-                        contentDescription = "Borrar",
+                        contentDescription = stringResource(R.string.content_desc_delete),
                         tint = MaterialTheme.colorScheme.error
                     )
                 }
@@ -260,11 +266,14 @@ fun PlantCard(
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(
-                            plant.photoUri ?: R.drawable.ic_launcher_background
+                            plant.photoUri ?: R.drawable.botaniq_launcher_foreground
                         ) // Si no hay foto, usa el icono de la app
                         .crossfade(true)
                         .build(),
-                    contentDescription = "Imagen de ${plant.nickname}",
+                    contentDescription = stringResource(
+                        R.string.content_desc_plant_image,
+                        plant.nickname
+                    ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
@@ -317,7 +326,7 @@ fun PlantCard(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_inventory_water_drop),
-                    contentDescription = "Confirmar Riego",
+                    contentDescription = stringResource(R.string.content_desc_confirm_watering),
                     tint = Color.White,
                     modifier = Modifier.size(30.dp)
                 )

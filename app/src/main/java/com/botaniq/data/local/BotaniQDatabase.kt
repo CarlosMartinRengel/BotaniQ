@@ -52,7 +52,7 @@ abstract class BotaniQDatabase : RoomDatabase() {
             INSTANCE?.let { database ->
                 scope.launch(Dispatchers.IO) {
                     val speciesDao = database.speciesInfoDao()
-                    val plantDao = database.plantDao()
+                    database.plantDao()
 
                     val initialSpecies = listOf(
                         SpeciesInfoEntity(
@@ -121,25 +121,25 @@ abstract class BotaniQDatabase : RoomDatabase() {
                     )
                     speciesDao.insertInitialSpecies(initialSpecies)
 
-                    val testPlants = listOf(
-                        PlantEntity(
-                            nickname = "La del salón",
-                            speciesName = "Monstera deliciosa",
-                            photoUri = null,
-                            baseWaterFreq = 7,
-                            lastWateredDate = System.currentTimeMillis(),
-                            nextWateringDate = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
-                        ),
-                        PlantEntity(
-                            nickname = "Mi Aloe",
-                            speciesName = "Aloe vera",
-                            photoUri = null,
-                            baseWaterFreq = 7,
-                            lastWateredDate = System.currentTimeMillis(),
-                            nextWateringDate = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
-                        )
-                    )
-                    testPlants.forEach { plantDao.insertPlant(it) }
+//                    val testPlants = listOf(
+//                        PlantEntity(
+//                            nickname = "La del salón",
+//                            speciesName = "Monstera deliciosa",
+//                            photoUri = "monstera_deliciosa",
+//                            baseWaterFreq = 7,
+//                            lastWateredDate = System.currentTimeMillis(),
+//                            nextWateringDate = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
+//                        ),
+//                        PlantEntity(
+//                            nickname = "Mi Aloe",
+//                            speciesName = "Aloe vera",
+//                            photoUri = "aloe_vera",
+//                            baseWaterFreq = 7,
+//                            lastWateredDate = System.currentTimeMillis(),
+//                            nextWateringDate = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000L)
+//                        )
+//                    )
+//                    testPlants.forEach { plantDao.insertPlant(it) }
                 }
             }
         }

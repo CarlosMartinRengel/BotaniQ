@@ -1,35 +1,50 @@
 <resources>
     <string name="app_name">BotaniQ</string>
 
+    <!-- Dropdowns -->
+    <string name="date.not_registered">Aún no registrado</string>
+    <string name="city_selector.current">%1$s (Actual)</string>
+    <string name="species_dropdown.empty">No hay especies registradas</string>
+    <string name="species_dropdown.specie">Especie</string>
+    <string name="species_dropdown.selectSpecie">Selecciona una especie</string>
+
     <!-- Bar navigation -->
     <string name="barnavigation.inventory">Inventario</string>
     <string name="barnavigation.add">Registrar</string>
     <string name="barnavigation.scanner">Escáner</string>
 
-    <!-- Plant Details -->
+    <!-- Inventory -->
+    <string name="inventory.title">TUS PLANTAS</string>
+    <string name="inventory.no_plants">Aún no tienes plantas. ¡Añade la primera!</string>
+    <string name="inventory.selected_plants">"%1$d seleccionadas"</string>
+
+    <!-- Plant details -->
     <string name="plant_details.topBar.newPlant">Nueva Planta</string>
     <string name="plant_details.topBar.editPlant">Editar Planta</string>
     <string name="plant_details.topBar.details">Detalles</string>
     <string name="plant_details.addPhoto">Añadir foto</string>
+    <string name="plant_details.change_photo">Cambiar Foto</string>
     <string name="plant_details.nickname">Apodo de la planta</string>
     <string name="plant_details.species_label">Especie: %1$s</string>
     <string name="plant_details.commonName">Nombre común</string>
     <string name="plant_details.category">Categoría</string>
     <string name="plant_details.freq">Frecuencia de riego: %1$d días</string>
+    <string name="plant_details.freqCustom">Frecuencia personalizada</string>
     <string name="plant_details.careTips">Consejos de cuidado:</string>
     <string name="plant_details.lastWatered">Último riego</string>
     <string name="plant_details.nextWatering">Próximo riego</string>
-    <string name="plant_details.freqCustom">Frecuencia personalizada</string>
     <string name="plant_details.savePlant">Guardar planta</string>
     <string name="plant_details.blankError">El apodo y la especie son obligatorios</string>
     <string name="plant_details.required">Este campo es obligatorio</string>
     <string name="plant_details.requiredSpecie">Debes seleccionar una especie</string>
-    <string name="plant_details_saveError">Error al guardar en la base de datos</string>
+    <string name="plant_details.saveError">Error al guardar en la base de datos</string>
+    <string name="plant_details_weather.analysis">Análisis del Clima: %1$s</string>
+    <string name="plant_details.weather.schedule">"Frecuencia base: %1$d días\nProgramado por la IA: %2$d días"</string>
+    <string name="plant_details.status.early">Riego adelantado</string>
+    <string name="plant_details.status.delayed">Riego pospuesto</string>
+    <string name="plant_details.status.stable">Clima estable</string>
 
-    <string name="species_dropdown.specie">Especie</string>
-    <string name="species_dropdown.selectSpecie">Selecciona una especie</string>
-
-    <!-- Camera Screen -->
+    <!-- Camera -->
     <string name="camera.mode.diagnosis">Diagnóstico</string>
     <string name="camera.mode.recognition">Reconocimiento</string>
     <string name="camera.mode.confirmImage">Confirmar imagen</string>
@@ -37,21 +52,58 @@
     <string name="camera.mode.diagnosisOnResult">Diagnosticar</string>
     <string name="camera.mode.plantFormOnResult">Seleccionar</string>
     <string name="camera.mode.access">Acceso a la cámara</string>
-    <string name="camera.mode.permission">Para poder identificar la especie de tu planta o diagnosticar su estado de salud, BotaniQ necesita acceder a la cámara de tu dispositivo.</string>
     <string name="camera.mode.open">Abrir cámara</string>
+    <string name="camera.mode.permission">Para poder identificar la especie de tu planta o diagnosticar su estado de salud, BotaniQ necesita acceder a la cámara de tu dispositivo.</string>
+    <string name="camera.permission.denied_hint">Si denegaste el permiso previamente, debes activarlo desde los Ajustes de tu teléfono.</string>
     <string name="camera.mode.toast">Es necesario el permiso en Ajustes para usar el escáner</string>
+    <string name="camera.toast.no_permission">Sin permiso de cámara</string>
     <string name="camera.mode.retryPhoto">Volver a intentar</string>
-
+    <string name="camera.ia.analyzing">La IA está analizando la planta...</string>
+    <string name="camera.ia.oops">¡Ups!</string>
+    <string name="camera.ia.confidence">Confianza: %1$d%%</string>
+    <string name="camera.ia.register_plant">Registrar planta</string>
     <string name="ia.mode.background">No se ha detectado ninguna planta válida. Intenta enfocar mejor la maceta.</string>
     <string name="ia.mode.lowConfidence">No estoy seguro de qué especie es. ¡Intenta acercarte o mejorar la luz!</string>
+    <string name="ia.mode.lowConfidence_diagnostic">No estoy seguro de qué lo que le sucede a esa planta. ¡Intenta acercarte o mejorar la luz!</string>
+    <string name="ia.status.healthy">¡Planta Sana!</string>
+    <string name="ia.status.anomaly">Anomalía: %1$s</string>
+    <string name="tflite.unknown">Desconocida</string>
+    <string name="tflite.error.init">Error de inicialización</string>
+    <string name="tflite.error.init_medical">Error de inicialización médica</string>
+    <string name="tflite.error.inference">Error de inferencia</string>
 
-
-    <!-- Delete -->
+    <!-- Dialogs -->
     <string name="dialog_delete_title_multiple">Eliminar plantas</string>
     <string name="dialog_delete_message_multiple">¿Estás seguro de que quieres eliminar las %1$d plantas seleccionadas? Esta acción no se puede deshacer.</string>
     <string name="dialog_delete_title_single">Eliminar planta</string>
     <string name="dialog_delete_message_single">¿Estás seguro de que quieres eliminar a \'%1$s\'? Esta acción no se puede deshacer.</string>
     <string name="dialog_delete_confirm">Eliminar</string>
     <string name="dialog_delete_cancel">Cancelar</string>
+
+    <!-- Workers -->
+    <string name="notification.action.watered">Planta regada</string>
+    <string name="worker.default_plant_name">Tu planta</string>
+    <string name="notification.channel.name">Recordatorio de riego</string>
+    <string name="notification.channel.desc">Notificación para recordar el riego de plantas</string>
+    <string name="notification.watering.title">¡Hora de regar!</string>
+    <string name="notification.watering.body">Tu %1$s necesita agua según nuestro análisis.</string>
+
+    <!-- Content description -->
+    <string name="content_desc.cancel_selection">Cancelar selección</string>
+    <string name="content_desc.delete">Borrar</string>
+    <string name="content_desc.delete_plant">Eliminar Planta</string>
+    <string name="content_desc.plant_image">Imagen de %1$s</string>
+    <string name="content_desc.confirm_watering">Confirmar Riego</string>
+    <string name="content_desc.error">Error</string>
+    <string name="content_desc.success">Éxito</string>
+    <string name="content_desc.toggle_flash">Alternar Flash</string>
+    <string name="content_desc.icon">Icono</string>
+    <string name="content_desc.open_gallery">Abrir Galería</string>
+    <string name="content_desc.captured_image">Imagen capturada</string>
+    <string name="content_desc.back">Atrás</string>
+    <string name="content_desc.edit">Editar</string>
+    <string name="content_desc.plant_photo">Foto de la planta</string>
+    <string name="content_desc.edit_photo">Editar foto</string>
+    <string name="content_desc.change_location">Cambiar ubicación</string>
 
 </resources>

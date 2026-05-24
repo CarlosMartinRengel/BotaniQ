@@ -1,6 +1,7 @@
 package com.botaniq
 
 import com.botaniq.ui.plantdetail.PlantFormState
+import com.botaniq.utils.UiText // Importamos la clase mágica
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -17,13 +18,13 @@ class PlantFormStateTest {
     @Test
     fun `Simulacion de validacion fallida activa la bandera de error`() {
         var state = PlantFormState(nickname = "")
+        val error = UiText.StringResource(12345)
 
-        // Simulamos la lógica que tienes en tu savePlant
         if (state.nickname.isBlank()) {
-            state = state.copy(showError = true, errorMessage = 12345)
+            state = state.copy(showError = true, errorMessage = error)
         }
 
         assertTrue(state.showError)
-        assertEquals(12345, state.errorMessage)
+        assertEquals(error, state.errorMessage)
     }
 }

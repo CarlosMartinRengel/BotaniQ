@@ -37,7 +37,7 @@ object RetrofitInstance {
         .addInterceptor(logging)
         .build()
 
-    // Inicialización perezosa (lazy) del cliente Retrofit
+    // Inicialización lazy del cliente Retrofit
     val api: WeatherApiService by lazy {
         Retrofit.Builder()
             .baseUrl("https://api.openweathermap.org/")

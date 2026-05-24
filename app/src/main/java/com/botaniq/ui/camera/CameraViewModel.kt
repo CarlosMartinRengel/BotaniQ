@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.botaniq.R
 import com.botaniq.data.tensorflow.TFLiteAnalyzer
+import com.botaniq.utils.UiText
 import kotlinx.coroutines.launch
 
 enum class ScannerMode(val titleRes: Int) {
@@ -22,8 +23,8 @@ data class CameraUIState(
     val capturedImageUri: Uri? = null,
     val isPermissionGranted: Boolean = false,
     val isProcessing: Boolean = false,
-    val errorMsg: Int? = null,
-    val recognizedSpecies: String? = null,
+    val errorMsg: UiText? = null,
+    val recognizedSpecies: UiText? = null,
     val recognitionConfidence: Float? = null
 )
 
@@ -70,7 +71,7 @@ class CameraViewModel(private val tfLiteAnalyzer: TFLiteAnalyzer) : ViewModel() 
                     isProcessing = false,
                     recognizedSpecies = null,
                     recognitionConfidence = null,
-                    errorMsg = R.string.ia_mode_background
+                    errorMsg = UiText.StringResource(R.string.ia_mode_background)
                 )
                 return@launch
             }
@@ -80,14 +81,14 @@ class CameraViewModel(private val tfLiteAnalyzer: TFLiteAnalyzer) : ViewModel() 
                     isProcessing = false,
                     recognizedSpecies = null,
                     recognitionConfidence = null,
-                    errorMsg = R.string.ia_mode_lowConfidence
+                    errorMsg = UiText.StringResource(R.string.ia_mode_lowConfidence)
                 )
                 return@launch
             }
 
             uiState = uiState.copy(
                 isProcessing = false,
-                recognizedSpecies = result.speciesName,
+                recognizedSpecies = UiText.DynamicString(result.speciesName),
                 recognitionConfidence = result.confidence,
                 errorMsg = null
             )
@@ -110,7 +111,7 @@ class CameraViewModel(private val tfLiteAnalyzer: TFLiteAnalyzer) : ViewModel() 
                     isProcessing = false,
                     recognizedSpecies = null,
                     recognitionConfidence = null,
-                    errorMsg = R.string.ia_mode_background
+                    errorMsg = UiText.StringResource(R.string.ia_mode_background)
                 )
                 return@launch
             }
@@ -121,16 +122,16 @@ class CameraViewModel(private val tfLiteAnalyzer: TFLiteAnalyzer) : ViewModel() 
                     isProcessing = false,
                     recognizedSpecies = null,
                     recognitionConfidence = null,
-                    errorMsg = R.string.ia_mode_lowConfidence
+                    errorMsg = UiText.StringResource(R.string.ia_mode_lowConfidence_diagnostic)
                 )
                 return@launch
             }
 
             // Se detecta algo
             val statusText = if (result.isHealthy) {
-                "¡Planta Sana!"
+                UiText.StringResource(R.string.ia_status_healthy)
             } else {
-                "Anomalía: ${result.anomalyDescription}"
+                UiText.StringResource(R.string.ia_status_anomaly, result.anomalyDescription)
             }
 
             uiState = uiState.copy(

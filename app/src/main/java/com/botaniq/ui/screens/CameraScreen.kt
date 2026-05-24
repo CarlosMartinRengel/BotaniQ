@@ -28,6 +28,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.LocalFlorist
+import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -150,25 +152,25 @@ fun CameraScreen(
                         CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "La IA está analizando la planta...",
+                            text = stringResource(R.string.camera_ia_analyzing),
                             color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.Center
                         )
                     } else if (state.errorMsg != null) {
                         Icon(
                             imageVector = Icons.Default.FlashOff,
-                            contentDescription = "Error",
+                            contentDescription = stringResource(R.string.content_desc_error),
                             tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(48.dp)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "¡Ups!",
+                            text = stringResource(R.string.camera_ia_oops),
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = stringResource(state.errorMsg),
+                            text = state.errorMsg.asString(),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
@@ -183,37 +185,47 @@ fun CameraScreen(
                     } else if (state.recognizedSpecies != null) {
                         val porcentaje = ((state.recognitionConfidence ?: 0f) * 100).toInt()
 
+                        if (state.selectedMode == ScannerMode.RECOGNITION) {
+                            Icons.Default.LocalFlorist
+                        } else {
+                            Icons.Default.MedicalServices
+                        }
+
                         Icon(
-                            imageVector = Icons.Default.PhotoLibrary, // O el icono de planta que prefieras
-                            contentDescription = "Éxito",
+                            imageVector = Icons.Default.PhotoLibrary,
+                            contentDescription = stringResource(R.string.content_desc_success),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(48.dp)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = state.recognizedSpecies,
+                            text = state.recognizedSpecies.asString(),
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.Center
                         )
                         Text(
-                            text = "Confianza: $porcentaje%",
+                            text = stringResource(R.string.camera_ia_confidence, porcentaje),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(24.dp))
-                        Button(
-                            onClick = {
-                                val species = state.recognizedSpecies ?: ""
-                                val uri = state.capturedImageUri
-                                if (uri != null) {
-                                    onNavigateToRegistration(species, uri)
-                                }
 
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Registrar planta")
+                        if (state.selectedMode == ScannerMode.RECOGNITION) {
+
+                            val speciesName = state.recognizedSpecies?.asString() ?: ""
+
+                            Button(
+                                onClick = {
+                                    val uri = state.capturedImageUri
+                                    if (uri != null) {
+                                        onNavigateToRegistration(speciesName, uri)
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(stringResource(R.string.camera_ia_register_plant))
+                            }
                         }
                         Button(
                             onClick = {
@@ -221,7 +233,7 @@ fun CameraScreen(
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Volver a intentar")
+                            Text(stringResource(R.string.camera_mode_retryPhoto))
                         }
                     }
                 }
@@ -252,7 +264,7 @@ fun PermissionRequestContent(onRequestPermission: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            "Si denegaste el permiso previamente, debes activarlo desde los Ajustes de tu teléfono.",
+            stringResource(R.string.camera_permission_denied_hint),
             color = MaterialTheme.colorScheme.error,
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodySmall
@@ -331,12 +343,11 @@ fun ScannerContent(
             ) {
                 IconButton(
                     onClick = { isFlashEnabled = !isFlashEnabled },
-                    // Le damos un fondo semi-transparente para que se vea sobre cualquier planta
                     modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
                 ) {
                     Icon(
                         imageVector = if (isFlashEnabled) Icons.Default.FlashOn else Icons.Default.FlashOff,
-                        contentDescription = "Alternar Flash",
+                        contentDescription = stringResource(R.string.content_desc_toggle_flash),
                         tint = Color.White
                     )
                 }
@@ -357,7 +368,7 @@ fun ScannerContent(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_bottom_camera_focused),
-                        contentDescription = "icon",
+                        contentDescription = stringResource(R.string.content_desc_icon),
                         tint = contentColor,
                         modifier = Modifier.size(28.dp)
                     )
@@ -376,7 +387,7 @@ fun ScannerContent(
                 ) {
                     Icon(
                         imageVector = Icons.Default.PhotoLibrary,
-                        contentDescription = "Abrir Galería",
+                        contentDescription = stringResource(R.string.content_desc_open_gallery),
                         tint = Color.White
                     )
                 }
@@ -438,7 +449,7 @@ fun ImageConfirmationContent(
         ) {
             AsyncImage(
                 model = imageUri,
-                contentDescription = "Imagen capturada",
+                contentDescription = stringResource(R.string.content_desc_captured_image),
                 contentScale = ContentScale.Fit,
                 modifier = Modifier.fillMaxSize()
             )
@@ -467,7 +478,6 @@ fun ImageConfirmationContent(
                     else stringResource(R.string.camera_mode_diagnosisOnResult)
                 )
             }
-            //TODO internacionalizacion
         }
     }
 }

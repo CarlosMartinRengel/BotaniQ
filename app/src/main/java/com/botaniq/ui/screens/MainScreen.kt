@@ -24,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -101,9 +100,21 @@ fun AddItem(
     currentDestination: NavDestination?,
     navController: NavHostController
 ) {
-    val selected = currentDestination?.hierarchy?.any {
-        it.route?.substringBefore('?') == screen.route.substringBefore('?')
-    } == true
+
+    val selected = when (screen) {
+        BottomBarScreen.Inventory -> {
+            currentDestination?.hierarchy?.any {
+                it.route?.startsWith(screen.route) == true ||
+                        it.route?.startsWith("plant_detail") == true
+            } == true
+        }
+
+        else -> {
+            currentDestination?.hierarchy?.any {
+                it.route?.substringBefore('?') == screen.route.substringBefore('?')
+            } == true
+        }
+    }
 
     val background =
         if (selected) Color.White else Color.Transparent
@@ -119,12 +130,14 @@ fun AddItem(
             .clip(CircleShape)
             .background(background)
             .clickable(onClick = {
-                navController.navigate(screen.route) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
+                if (!selected) {
+                    navController.navigate(screen.route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
                     }
-                    launchSingleTop = true
-                    restoreState = true
                 }
             })
     ) {
@@ -135,27 +148,20 @@ fun AddItem(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Icon(
-                painter = painterResource(id = if (selected) screen.icon_focused else screen.icon),
+                painter = painterResource(id = if (selected) screen.iconFocused else screen.icon),
                 contentDescription = "icon",
                 tint = contentColor,
                 modifier = Modifier.size(28.dp)
             )
             AnimatedVisibility(visible = selected) {
                 Text(
-                    text = stringResource(screen.title),
+                    text = screen.title.asString(),
                     color = contentColor
                 )
             }
         }
     }
 }
-
-//@Composable
-//@Preview
-//fun BottomNavPreview() {
-//    MainScreen()
-//}
-
 
 
 

@@ -14,6 +14,7 @@ import com.botaniq.data.local.entities.PlantEntity
 import com.botaniq.data.local.entities.SpeciesInfoEntity
 import com.botaniq.data.repository.PlantRepository
 import com.botaniq.utils.FileUtil
+import com.botaniq.utils.UiText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
@@ -69,12 +70,12 @@ class PlantFormViewModel(
     }
 
     // VARIANTE 2: Registro Manual
-    private fun setupManualAdd() {
+    fun setupManualAdd() {
         uiState = uiState.copy(isEditMode = true, plantId = 0)
     }
 
     // VARIANTE 3: Detalles
-    private suspend fun loadExistingPlant(plantId: Int) {
+    suspend fun loadExistingPlant(plantId: Int) {
         uiState = uiState.copy(isLoading = true)
         val plant = repository.getPlantById(plantId)
 
@@ -94,6 +95,8 @@ class PlantFormViewModel(
                 isEditMode = false, // Empezamos en modo detalles
                 isLoading = false
             )
+
+            analyzeWeather(it.baseWaterFreq, it.lastWateredDate, it.nextWateringDate)
         }
 
     }
@@ -126,7 +129,7 @@ class PlantFormViewModel(
         if (uiState.nickname.isBlank() || uiState.speciesName.isNullOrBlank()) {
             uiState = uiState.copy(
                 showError = true,
-                errorMessage = R.string.plant_details_blankError
+                errorMessage = UiText.StringResource(R.string.plant_details_blankError)
             )
             return
         }
@@ -153,7 +156,7 @@ class PlantFormViewModel(
                 Log.e("ERROR", e.toString())
                 uiState = uiState.copy(
                     showError = true,
-                    errorMessage = R.string.plant_details_saveError
+                    errorMessage = UiText.StringResource(R.string.plant_details_saveError)
                 )
             }
         }
@@ -191,6 +194,24 @@ class PlantFormViewModel(
             onSuccess()
         }
     }
+
+    private fun analyzeWeather(baseDays: Int, lastWatered: Long, nextWatering: Long) {
+        if (lastWatered == 0L || nextWatering == 0L) return
+
+        val scheduled = ((nextWatering - lastWatered) / (1000L * 60 * 60 * 24)).toInt()
+
+        val (status, title) = when {
+            scheduled < baseDays -> WeatherAnalysisStatus.EARLY to UiText.StringResource(R.string.plant_details_status_early)
+            scheduled > baseDays -> WeatherAnalysisStatus.DELAYED to UiText.StringResource(R.string.plant_details_status_delayed)
+            else -> WeatherAnalysisStatus.STABLE to UiText.StringResource(R.string.plant_details_status_stable)
+        }
+
+        uiState = uiState.copy(
+            scheduledDays = scheduled,
+            weatherStatus = status,
+            weatherTitle = title
+        )
+    }
 }
 
 
@@ -209,5 +230,12 @@ data class PlantFormState(
     val isEditMode: Boolean = false, // Por defecto true para registros nuevos
     val isLoading: Boolean = false,
     val showError: Boolean = false,
-    val errorMessage: Int? = null
+    val errorMessage: UiText? = null,
+    val scheduledDays: Int = 0,
+    val weatherTitle: UiText? = null,
+    val weatherStatus: WeatherAnalysisStatus? = null
 )
+
+enum class WeatherAnalysisStatus {
+    EARLY, DELAYED, STABLE
+}

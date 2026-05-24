@@ -30,12 +30,12 @@ object ImageUtils {
                         decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
                     }
                 } else {
-                    // Fallback seguro para versiones anteriores a Android 9
+                    // Fallback para versiones anteriores a Android 9
                     val options = BitmapFactory.Options().apply {
                         inJustDecodeBounds = true
                     }
 
-                    // Leemos solo las dimensiones primero
+                    // Se leen solo las dimensiones primero
                     context.contentResolver.openInputStream(uri)?.use {
                         BitmapFactory.decodeStream(it, null, options)
                     }

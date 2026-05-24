@@ -1,8 +1,9 @@
 package com.botaniq
 
+import com.botaniq.utils.UiText
 import com.botaniq.utils.formatDate
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.util.Calendar
 
@@ -11,12 +12,15 @@ class DateUtilTest {
     @Test
     fun `formatDate devuelve texto de no registrado cuando el timestamp es 0`() {
         val result = formatDate(0L)
-        assertEquals("Aún no registrado", result)
+
+        assertTrue(result is UiText.StringResource)
+
+        val resourceResult = result as UiText.StringResource
+        assertEquals(R.string.date_not_registered, resourceResult.resId)
     }
 
     @Test
     fun `formatDate devuelve una fecha formateada correctamente con un timestamp valido`() {
-        // Configuramos una fecha conocida (ej. 1 de Enero de 2026)
         val calendar = Calendar.getInstance().apply {
             set(2026, Calendar.JANUARY, 1)
         }
@@ -24,8 +28,9 @@ class DateUtilTest {
 
         val result = formatDate(timestamp)
 
-        // Verificamos que el formato contiene el año
-        assertNotEquals("Aún no registrado", result)
-        assertEquals(true, result.contains("2026"))
+        assertTrue(result is UiText.DynamicString)
+
+        val dateString = (result as UiText.DynamicString).value
+        assertTrue(dateString.contains("2026"))
     }
 }

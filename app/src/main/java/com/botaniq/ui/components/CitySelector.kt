@@ -17,6 +17,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.botaniq.R
 import com.botaniq.ui.inventory.PlantViewModel
 
 @Composable
@@ -37,7 +39,7 @@ fun CitySelector(
         IconButton(onClick = { expanded = true }) {
             Icon(
                 imageVector = Icons.Default.LocationOn,
-                contentDescription = "Cambiar ubicación"
+                contentDescription = stringResource(R.string.content_desc_change_location)
             )
         }
 
@@ -51,7 +53,7 @@ fun CitySelector(
                     text = {
                         // Para que se sepa que ciudad está seleccionada
                         if (city == currentCity) {
-                            Text(text = "$city (Actual)")
+                            Text(text = stringResource(R.string.city_selector_current, city))
                         } else {
                             Text(text = city)
                         }

@@ -18,7 +18,8 @@ import com.botaniq.ui.plantdetail.PlantFormViewModel
 import com.botaniq.ui.plantdetail.PlantFormViewModelFactory
 import com.botaniq.ui.screens.CameraScreen
 import com.botaniq.ui.screens.InventoryScreen
-import com.botaniq.ui.screens.PlantScreen
+import com.botaniq.ui.screens.PlantDetailEditScreen
+import com.botaniq.ui.screens.PlantRegistrationScreen
 import com.botaniq.utils.ImageUtils
 import kotlinx.coroutines.launch
 
@@ -34,14 +35,13 @@ fun BottomNavGraph(
         {
             InventoryScreen(
                 onPlantClick = { id ->
-                    navController.navigate("plant_screen?plantId=$id")
+                    navController.navigate("plant_detail/$id")
                 }
             )
         }
         composable(
-            route = "plant_screen?plantId={plantId}&speciesName={speciesName}&photoUri={photoUri}",
+            route = "${BottomBarScreen.Add.route}?speciesName={speciesName}&photoUri={photoUri}",
             arguments = listOf(
-                navArgument("plantId") { type = NavType.IntType; defaultValue = 0 },
                 navArgument("speciesName") {
                     type = NavType.StringType; nullable = true; defaultValue = null
                 },
@@ -50,13 +50,12 @@ fun BottomNavGraph(
                 }
             )
         ) { backStackEntry ->
-            val plantId = backStackEntry.arguments?.getInt("plantId") ?: 0
+
             val speciesName = backStackEntry.arguments?.getString("speciesName")
             val photoUri = backStackEntry.arguments?.getString("photoUri")
 
             val context = LocalContext.current.applicationContext
             val scope = rememberCoroutineScope()
-
             val db = AppModule.provideDatabase(context, scope)
 
             val viewModel: PlantFormViewModel = viewModel(
@@ -71,13 +70,10 @@ fun BottomNavGraph(
                 )
             )
 
-            PlantScreen(
-                plantId = plantId,
+            PlantRegistrationScreen(
                 speciesName = speciesName,
                 photoUri = photoUri,
-                onBack = {
-                    navController.popBackStack()
-                },
+                onBack = { navController.popBackStack() },
                 onNavigateToCamera = {
                     navController.navigate("${BottomBarScreen.Diagnostic.route}?isFromForm=true")
                 },
@@ -85,13 +81,48 @@ fun BottomNavGraph(
                 viewModel = viewModel,
             )
         }
+
+        composable(
+            route = "plant_detail/{plantId}",
+            arguments = listOf(
+                navArgument("plantId") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val plantId = backStackEntry.arguments?.getInt("plantId") ?: -1
+
+            val context = LocalContext.current.applicationContext
+            val scope = rememberCoroutineScope()
+            val db = AppModule.provideDatabase(context, scope)
+
+            val viewModel: PlantFormViewModel = viewModel(
+                factory = PlantFormViewModelFactory(
+                    AppModule.providePlantRepository(
+                        context = context,
+                        plantDao = AppModule.providePlantDao(db),
+                        speciesInfoDao = AppModule.provideSpeciesInfoDao(db),
+                        weatherCacheDao = AppModule.provideWeatherCacheDao(db),
+                        weatherApi = AppModule.provideWeatherApi()
+                    )
+                )
+            )
+
+            PlantDetailEditScreen(
+                plantId = plantId,
+                onBack = { navController.popBackStack() },
+                onNavigateToCamera = {
+                    navController.navigate("${BottomBarScreen.Diagnostic.route}?isFromForm=true")
+                },
+                navController = navController,
+                viewModel = viewModel,
+            )
+        }
+
         composable(
             route = "${BottomBarScreen.Diagnostic.route}?isFromForm={isFromForm}",
             arguments = listOf(
                 navArgument("isFromForm") {
                     type = NavType.BoolType
-                    defaultValue =
-                        false
+                    defaultValue = false
                 }
             )
         ) { backStackEntry ->
@@ -124,15 +155,13 @@ fun BottomNavGraph(
                             } else {
                                 cameraViewModel.identifyPlant(bitmap)
                             }
-                        } else {
-                            // TODO Manejar el error
                         }
                     }
                 },
                 onNavigateToRegistration = { species, uri ->
                     cameraViewModel.clearCapturedImage()
 
-                    navController.navigate("plant_screen?speciesName=$species&photoUri=$uri")
+                    navController.navigate("${BottomBarScreen.Add.route}?speciesName=$species&photoUri=$uri")
                 }
             )
         }
