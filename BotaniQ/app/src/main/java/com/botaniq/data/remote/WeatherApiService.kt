@@ -1,5 +1,6 @@
 package com.botaniq.data.remote
 
+import com.botaniq.BuildConfig
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -11,7 +12,7 @@ interface WeatherApiService {
     @GET("data/2.5/weather")
     suspend fun getCurrentWeather(
         @Query("q") city: String,
-        @Query("appid") apiKey: String = "db990a3a97d32b2d45dddb61aa9415b5",
+        @Query("appid") apiKey: String = BuildConfig.OPEN_WEATHER_API_KEY,
         @Query("units") units: String = "metric", // Para obtener los grados como Celsius
         @Query("lang") lang: String = "es" // Para que la descripción salga en español
     ): WeatherResponse
@@ -19,7 +20,7 @@ interface WeatherApiService {
     @GET("data/2.5/forecast")
     suspend fun getForecastWeather(
         @Query("q") city: String,
-        @Query("appid") apiKey: String = "db990a3a97d32b2d45dddb61aa9415b5",
+        @Query("appid") apiKey: String = BuildConfig.OPEN_WEATHER_API_KEY,
         @Query("units") units: String = "metric", // Para obtener los grados como Celsius
         @Query("lang") lang: String = "es" // Para que la descripción salga en español
     ): ForecastResponse
