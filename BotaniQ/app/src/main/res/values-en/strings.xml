@@ -1,0 +1,109 @@
+<resources>
+    <string name="app_name">BotaniQ</string>
+
+    <!-- Dropdowns -->
+    <string name="date.not_registered">Not registered yet</string>
+    <string name="city_selector.current">%1$s (Current)</string>
+    <string name="species_dropdown.empty">No species registered</string>
+    <string name="species_dropdown.specie">Species</string>
+    <string name="species_dropdown.selectSpecie">Select a species</string>
+
+    <!-- Bar navigation -->
+    <string name="barnavigation.inventory">Inventory</string>
+    <string name="barnavigation.add">Add Plant</string>
+    <string name="barnavigation.scanner">Scanner</string>
+
+    <!-- Inventory -->
+    <string name="inventory.title">YOUR PLANTS</string>
+    <string name="inventory.no_plants">You don\'t have any plants yet. Add your first one!</string>
+    <string name="inventory.selected_plants">"%1$d selected"</string>
+
+    <!-- Plant details -->
+    <string name="plant_details.topBar.newPlant">New Plant</string>
+    <string name="plant_details.topBar.editPlant">Edit Plant</string>
+    <string name="plant_details.topBar.details">Details</string>
+    <string name="plant_details.addPhoto">Add photo</string>
+    <string name="plant_details.change_photo">Change Photo</string>
+    <string name="plant_details.nickname">Plant nickname</string>
+    <string name="plant_details.species_label">Species: %1$s</string>
+    <string name="plant_details.commonName">Common name</string>
+    <string name="plant_details.category">Category</string>
+    <string name="plant_details.freq">Watering frequency: %1$d days</string>
+    <string name="plant_details.freqCustom">Custom frequency</string>
+    <string name="plant_details.careTips">Care tips:</string>
+    <string name="plant_details.lastWatered">Last watered</string>
+    <string name="plant_details.nextWatering">Next watering</string>
+    <string name="plant_details.savePlant">Save plant</string>
+    <string name="plant_details.blankError">Nickname and species are required</string>
+    <string name="plant_details.required">This field is required</string>
+    <string name="plant_details.requiredSpecie">You must select a species</string>
+    <string name="plant_details.saveError">Error saving to the database</string>
+    <string name="plant_details_weather.analysis">Weather Analysis: %1$s</string>
+    <string name="plant_details.weather.schedule">"Base frequency: %1$d days\nScheduled by AI: %2$d days"</string>
+    <string name="plant_details.status.early">Early watering</string>
+    <string name="plant_details.status.delayed">Delayed watering</string>
+    <string name="plant_details.status.stable">Stable weather</string>
+
+    <!-- Camera -->
+    <string name="camera.mode.diagnosis">Diagnosis</string>
+    <string name="camera.mode.recognition">Recognition</string>
+    <string name="camera.mode.confirmImage">Confirm image</string>
+    <string name="camera.mode.recognitionOnResult">Recognize</string>
+    <string name="camera.mode.diagnosisOnResult">Diagnose</string>
+    <string name="camera.mode.plantFormOnResult">Select</string>
+    <string name="camera.mode.access">Camera access</string>
+    <string name="camera.mode.open">Open camera</string>
+    <string name="camera.mode.permission">To identify your plant\'s species or diagnose its health, BotaniQ needs access to your device\'s camera.</string>
+    <string name="camera.permission.denied_hint">If you previously denied permission, you must enable it in your phone\'s Settings.</string>
+    <string name="camera.mode.toast">Camera permission in Settings is required to use the scanner</string>
+    <string name="camera.toast.no_permission">No camera permission</string>
+    <string name="camera.mode.retryPhoto">Try again</string>
+    <string name="camera.ia.analyzing">AI is analyzing the plant...</string>
+    <string name="camera.ia.oops">Oops!</string>
+    <string name="camera.ia.confidence">Confidence: %1$d%%</string>
+    <string name="camera.ia.register_plant">Register plant</string>
+    <string name="ia.mode.background">No valid plant detected. Try focusing better on the pot.</string>
+    <string name="ia.mode.lowConfidence">I\'m not sure what species this is. Try getting closer or improving the lighting!</string>
+    <string name="ia.mode.lowConfidence_diagnostic">I\'m not sure what\'s wrong with this plant. Try getting closer or improving the lighting!</string>
+    <string name="ia.status.healthy">Healthy Plant!</string>
+    <string name="ia.status.anomaly">Anomaly: %1$s</string>
+    <string name="tflite.unknown">Unknown</string>
+    <string name="tflite.error.init">Initialization error</string>
+    <string name="tflite.error.init_medical">Health initialization error</string>
+    <string name="tflite.error.inference">Inference error</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_delete_title_multiple">Delete plants</string>
+    <string name="dialog_delete_message_multiple">Are you sure you want to delete the %1$d selected plants? This action cannot be undone.</string>
+    <string name="dialog_delete_title_single">Delete plant</string>
+    <string name="dialog_delete_message_single">Are you sure you want to delete \'%1$s\'? This action cannot be undone.</string>
+    <string name="dialog_delete_confirm">Delete</string>
+    <string name="dialog_delete_cancel">Cancel</string>
+
+    <!-- Workers -->
+    <string name="notification.action.watered">Plant watered</string>
+    <string name="worker.default_plant_name">Your plant</string>
+    <string name="notification.channel.name">Watering reminder</string>
+    <string name="notification.channel.desc">Notification to remind plant watering</string>
+    <string name="notification.watering.title">Time to water!</string>
+    <string name="notification.watering.body">Your %1$s needs water according to our analysis.</string>
+
+    <!-- Content description -->
+    <string name="content_desc.cancel_selection">Cancel selection</string>
+    <string name="content_desc.delete">Delete</string>
+    <string name="content_desc.delete_plant">Delete Plant</string>
+    <string name="content_desc.plant_image">Image of %1$s</string>
+    <string name="content_desc.confirm_watering">Confirm Watering</string>
+    <string name="content_desc.error">Error</string>
+    <string name="content_desc.success">Success</string>
+    <string name="content_desc.toggle_flash">Toggle Flash</string>
+    <string name="content_desc.icon">Icon</string>
+    <string name="content_desc.open_gallery">Open Gallery</string>
+    <string name="content_desc.captured_image">Captured image</string>
+    <string name="content_desc.back">Back</string>
+    <string name="content_desc.edit">Edit</string>
+    <string name="content_desc.plant_photo">Plant photo</string>
+    <string name="content_desc.edit_photo">Edit photo</string>
+    <string name="content_desc.change_location">Change location</string>
+
+</resources>
