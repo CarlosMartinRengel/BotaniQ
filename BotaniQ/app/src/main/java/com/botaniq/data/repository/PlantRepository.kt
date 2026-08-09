@@ -129,7 +129,7 @@ class PlantRepository(
         val currentTime = System.currentTimeMillis()
         val delayInMillis = nextWatering - currentTime
         // Baja la notificacion a 10s
-        //val delayInMillis = 20000L
+        //val delayInMillis = 10000L
 
         // En caso de que la fecha salga mal
         if (delayInMillis <= 0) return
