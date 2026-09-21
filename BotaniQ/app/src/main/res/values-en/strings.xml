@@ -14,9 +14,14 @@
     <string name="barnavigation.scanner">Scanner</string>
 
     <!-- Inventory -->
-    <string name="inventory.title">YOUR PLANTS</string>
-    <string name="inventory.no_plants">You don\'t have any plants yet. Add your first one!</string>
+    <string name="inventory.title">Your plants</string>
+    <string name="inventory.no_plants">You don\'t have any plants in your collection yet</string>
+    <string name="inventory.add_first">Register my first plant</string>
     <string name="inventory.selected_plants">"%1$d selected"</string>
+    <plurals name="inventory_plant_count">
+        <item quantity="one">%1$d plant</item>
+        <item quantity="other">%1$d plants</item>
+    </plurals>
 
     <!-- Plant details -->
     <string name="plant_details.topBar.newPlant">New Plant</string>
@@ -58,7 +63,7 @@
     <string name="camera.mode.toast">Camera permission in Settings is required to use the scanner</string>
     <string name="camera.toast.no_permission">No camera permission</string>
     <string name="camera.mode.retryPhoto">Try again</string>
-    <string name="camera.ia.analyzing">AI is analyzing the plant...</string>
+    <string name="camera.ia.analyzing">AI is analyzing the plant…</string>
     <string name="camera.ia.oops">Oops!</string>
     <string name="camera.ia.confidence">Confidence: %1$d%%</string>
     <string name="camera.ia.register_plant">Register plant</string>

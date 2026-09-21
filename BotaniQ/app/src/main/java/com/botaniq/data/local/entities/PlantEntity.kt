@@ -1,5 +1,6 @@
 package com.botaniq.data.local.entities
 
+import androidx.compose.runtime.Immutable
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -16,6 +17,7 @@ import androidx.room.PrimaryKey
             onDelete = ForeignKey.CASCADE
         )]
 )
+@Immutable
 data class PlantEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,

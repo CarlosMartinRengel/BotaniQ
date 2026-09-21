@@ -1,6 +1,7 @@
 package com.botaniq.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,19 +11,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,6 +36,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -62,7 +69,6 @@ fun PlantRegistrationScreen(
 
     val returnedUri = returnedUriState?.value
 
-    // Lógica para capturar la foto cuando volvemos de la cámara
     LaunchedEffect(returnedUri) {
         returnedUri?.let { uri ->
             if (uri.isNotEmpty()) {
@@ -72,7 +78,6 @@ fun PlantRegistrationScreen(
         }
     }
 
-    // Si viene del escáner con informacion, se carga
     LaunchedEffect(Unit) {
         viewModel.setupManualAdd()
         if (photoUri != null) viewModel.onPhotoUriChange(photoUri, context)
@@ -88,18 +93,20 @@ fun PlantRegistrationScreen(
         }
     }
 
-
-
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Atrás")
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.content_desc_back)
+                    )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
@@ -118,43 +125,86 @@ fun PlantRegistrationScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(300.dp)
+                    .height(260.dp)
+                    .padding(horizontal = 20.dp, vertical = 12.dp)
             ) {
-                AsyncImage(
-                    model = state.photoUri
-                        ?: R.drawable.ic_launcher_foreground, // Cambia por placeholder si tienes
-                    contentDescription = stringResource(R.string.content_desc_plant_photo),
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-
+                val photoShape = MaterialTheme.shapes.large
                 if (state.photoUri == null) {
-                    Button(
-                        onClick = onNavigateToCamera,
-                        modifier = Modifier.align(Alignment.Center)
-                    ) {
-                        Text(stringResource(R.string.plant_details_addPhoto))
-                    }
-                } else {
-                    // Botón flotante para cambiar la foto si ya hay una
                     Box(
                         modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(16.dp)
-                            .background(Color.Black.copy(alpha = 0.6f), CircleShape)
-                            .padding(12.dp)
-                            .clickable { onNavigateToCamera() }
+                            .fillMaxSize()
+                            .clip(photoShape)
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                            .border(
+                                2.dp,
+                                MaterialTheme.colorScheme.outlineVariant,
+                                photoShape
+                            )
+                            .clickable { onNavigateToCamera() },
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            stringResource(R.string.plant_details_change_photo),
-                            color = Color.White
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                modifier = Modifier.size(72.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = Icons.Default.AddAPhoto,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.size(32.dp)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = stringResource(R.string.plant_details_addPhoto),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(photoShape)
+                    ) {
+                        AsyncImage(
+                            model = state.photoUri,
+                            contentDescription = stringResource(R.string.content_desc_plant_photo),
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
                         )
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.Black.copy(alpha = 0.6f),
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(12.dp)
+                                .clickable { onNavigateToCamera() }
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .padding(12.dp)
+                                    .size(24.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AddAPhoto,
+                                    contentDescription = stringResource(R.string.plant_details_change_photo),
+                                    tint = Color.White
+                                )
+                            }
+                        }
                     }
                 }
             }
 
             // FORMULARIO
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(horizontal = 20.dp)) {
                 OutlinedTextField(
                     value = state.nickname,
                     onValueChange = { viewModel.onNicknameChange(it) },
@@ -173,7 +223,6 @@ fun PlantRegistrationScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Dropdown o texto dependiendo de si la IA ya lo detectó
                 if (speciesName == null) {
                     SpeciesDropdown(
                         options = state.availableSpecies,
@@ -194,21 +243,31 @@ fun PlantRegistrationScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text(
-                    text = stringResource(R.string.plant_details_freq, state.baseWaterFreq),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Slider(
-                    value = state.baseWaterFreq.toFloat(),
-                    onValueChange = { viewModel.onFreqChange(it.toInt()) },
-                    valueRange = 1f..30f
-                )
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    ),
+                    shape = MaterialTheme.shapes.large
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = stringResource(R.string.plant_details_freq, state.baseWaterFreq),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Slider(
+                            value = state.baseWaterFreq.toFloat(),
+                            onValueChange = { viewModel.onFreqChange(it.toInt()) },
+                            valueRange = 1f..30f
+                        )
+                    }
+                }
 
                 Button(
                     onClick = { viewModel.savePlant(onBack) },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 16.dp)
+                        .padding(top = 20.dp, bottom = 32.dp)
                 ) {
                     Text(stringResource(R.string.plant_details_savePlant).uppercase())
                 }
