@@ -155,6 +155,8 @@ fun BottomNavGraph(
                             } else {
                                 cameraViewModel.identifyPlant(bitmap)
                             }
+                        } else {
+                            cameraViewModel.onAnalysisError()
                         }
                     }
                 },

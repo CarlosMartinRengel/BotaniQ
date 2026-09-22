@@ -58,13 +58,14 @@
     <string name="camera.mode.toast">Es necesario el permiso en Ajustes para usar el escáner</string>
     <string name="camera.toast.no_permission">Sin permiso de cámara</string>
     <string name="camera.mode.retryPhoto">Volver a intentar</string>
-    <string name="camera.ia.analyzing">La IA está analizando la planta...</string>
+    <string name="camera.ia.analyzing">La IA está analizando la planta…</string>
     <string name="camera.ia.oops">¡Ups!</string>
     <string name="camera.ia.confidence">Confianza: %1$d%%</string>
     <string name="camera.ia.register_plant">Registrar planta</string>
     <string name="ia.mode.background">No se ha detectado ninguna planta válida. Intenta enfocar mejor la maceta.</string>
     <string name="ia.mode.lowConfidence">No estoy seguro de qué especie es. ¡Intenta acercarte o mejorar la luz!</string>
     <string name="ia.mode.lowConfidence_diagnostic">No estoy seguro de qué lo que le sucede a esa planta. ¡Intenta acercarte o mejorar la luz!</string>
+    <string name="ia.mode.error">No se pudo analizar la imagen. Vuelve a intentarlo.</string>
     <string name="ia.status.healthy">¡Planta Sana!</string>
     <string name="ia.status.anomaly">Anomalía: %1$s</string>
     <string name="tflite.unknown">Desconocida</string>
@@ -85,6 +86,7 @@
     <string name="worker.default_plant_name">Tu planta</string>
     <string name="notification.channel.name">Recordatorio de riego</string>
     <string name="notification.channel.desc">Notificación para recordar el riego de plantas</string>
+    <string name="notification.permission.denied">Sin permisos de notificación, BotaniQ no podrá avisarte cuándo regar tus plantas.</string>
     <string name="notification.watering.title">¡Hora de regar!</string>
     <string name="notification.watering.body">Tu %1$s necesita agua según nuestro análisis.</string>
 

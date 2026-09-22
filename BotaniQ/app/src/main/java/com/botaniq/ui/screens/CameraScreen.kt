@@ -76,6 +76,8 @@ fun CameraScreen(
     val context = LocalContext.current
     val state = viewModel.uiState
 
+    val noPermissionMessage = stringResource(R.string.camera_toast_no_permission)
+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
@@ -83,7 +85,7 @@ fun CameraScreen(
             if (!isGranted) {
                 makeText(
                     context,
-                    "Sin permiso de cámara",
+                    noPermissionMessage,
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -182,24 +184,24 @@ fun CameraScreen(
                         ) {
                             Text(stringResource(R.string.camera_mode_retryPhoto))
                         }
-                    } else if (state.recognizedSpecies != null) {
+                    } else {
                         val porcentaje = ((state.recognitionConfidence ?: 0f) * 100).toInt()
 
-                        if (state.selectedMode == ScannerMode.RECOGNITION) {
+                        val resultIcon = if (state.selectedMode == ScannerMode.RECOGNITION) {
                             Icons.Default.LocalFlorist
                         } else {
                             Icons.Default.MedicalServices
                         }
 
                         Icon(
-                            imageVector = Icons.Default.PhotoLibrary,
+                            imageVector = resultIcon,
                             contentDescription = stringResource(R.string.content_desc_success),
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(48.dp)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = state.recognizedSpecies.asString(),
+                            text = state.recognizedSpecies?.asString() ?: "",
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.Center

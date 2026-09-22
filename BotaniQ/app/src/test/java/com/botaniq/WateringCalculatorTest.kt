@@ -7,6 +7,16 @@ import org.junit.Test
 class WateringCalculatorTest {
 
     @Test
+    fun initialNextWateringTest() {
+        val now = 1_000_000L
+        val expected = now + 7L * 24 * 60 * 60 * 1000
+
+        val resultado = PlantRepository.initialNextWatering(7, now)
+
+        assertEquals(expected, resultado)
+    }
+
+    @Test
     fun weatherTest() {
         val baseDays = 7
         val highTemp = 32.0 // -0.3

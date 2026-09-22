@@ -9,7 +9,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
+import com.botaniq.R
 
 @Composable
 fun RequestNotificationPermission() {
@@ -18,13 +20,15 @@ fun RequestNotificationPermission() {
     // El permiso en tiempo de ejecución solo es necesario en Android 13 (API 33) o superior
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
 
+        val deniedMessage = stringResource(R.string.notification_permission_denied)
+
         val permissionLauncher = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.RequestPermission(),
             onResult = { isGranted ->
                 if (!isGranted) {
                     Toast.makeText(
                         context,
-                        "Sin permisos de notificación, BotaniQ no podrá avisarte cuándo regar tus plantas.",
+                        deniedMessage,
                         Toast.LENGTH_LONG
                     ).show()
                 }

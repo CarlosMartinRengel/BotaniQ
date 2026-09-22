@@ -65,6 +65,17 @@ class CameraViewModel(private val tfLiteAnalyzer: TFLiteAnalyzer) : ViewModel() 
                 "La IA ha detectado: ${result.speciesName} con una seguridad de: ${result.confidence}"
             )
 
+            // El analizador devuelve "Error ..." cuando el modelo no carga o falla
+            if (result.speciesName.startsWith("Error")) {
+                uiState = uiState.copy(
+                    isProcessing = false,
+                    recognizedSpecies = null,
+                    recognitionConfidence = null,
+                    errorMsg = UiText.StringResource(R.string.ia_mode_error)
+                )
+                return@launch
+            }
+
             // ENtra en la opcion de "Fondo" es decir no hay planta o no se reconoce ninguna
             if (result.speciesName.equals("Fondo no planta", ignoreCase = true)) {
                 uiState = uiState.copy(
@@ -105,6 +116,17 @@ class CameraViewModel(private val tfLiteAnalyzer: TFLiteAnalyzer) : ViewModel() 
                 "La IA detecta: ${result.anomalyDescription} con confianza: ${result.confidence}"
             )
 
+            // El analizador devuelve "Error ..." cuando el modelo no carga o falla
+            if (result.anomalyDescription.startsWith("Error")) {
+                uiState = uiState.copy(
+                    isProcessing = false,
+                    recognizedSpecies = null,
+                    recognitionConfidence = null,
+                    errorMsg = UiText.StringResource(R.string.ia_mode_error)
+                )
+                return@launch
+            }
+
             // Clase de rechazo
             if (result.anomalyDescription.contains("invalida", ignoreCase = true)) {
                 uiState = uiState.copy(
@@ -141,6 +163,16 @@ class CameraViewModel(private val tfLiteAnalyzer: TFLiteAnalyzer) : ViewModel() 
                 errorMsg = null
             )
         }
+    }
+
+    // La imagen no se pudo decodificar (p. ej. fallo al leer la Uri)
+    fun onAnalysisError() {
+        uiState = uiState.copy(
+            isProcessing = false,
+            recognizedSpecies = null,
+            recognitionConfidence = null,
+            errorMsg = UiText.StringResource(R.string.ia_mode_error)
+        )
     }
 
     override fun onCleared() {

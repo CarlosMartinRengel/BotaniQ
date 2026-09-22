@@ -12,7 +12,6 @@ import com.botaniq.data.local.dao.WeatherCacheDao
 import com.botaniq.data.local.entities.PlantEntity
 import com.botaniq.data.local.entities.SpeciesInfoEntity
 import com.botaniq.data.local.entities.WeatherCacheEntity
-import com.botaniq.data.remote.RetrofitInstance
 import com.botaniq.data.remote.WeatherApiService
 import com.botaniq.utils.workers.WateringWorker
 import kotlinx.coroutines.Dispatchers
@@ -42,7 +41,21 @@ class PlantRepository(
 
     suspend fun registerPlant(plant: PlantEntity) {
         withContext(Dispatchers.IO) {
-            plantDao.insertPlant(plant)
+            // Una planta nueva no tiene fecha de próximo riego: se agenda desde ahora
+            val newPlant = if (plant.nextWateringDate <= 0L) {
+                plant.copy(
+                    nextWateringDate =
+                        initialNextWatering(plant.baseWaterFreq, System.currentTimeMillis())
+                )
+            } else {
+                plant
+            }
+
+            // Si id == 0, Room autogenera el id; insertPlant devuelve la fila real
+            val rowId = plantDao.insertPlant(newPlant)
+            val plantId = if (newPlant.id > 0) newPlant.id else rowId.toInt()
+
+            scheduleWateringNotification(plantId, newPlant.nickname, newPlant.nextWateringDate)
         }
     }
 
@@ -65,7 +78,7 @@ class PlantRepository(
             var daysAdded: Double
 
             try {
-                val forecastResponse = RetrofitInstance.api.getForecastWeather(city + ",ES")
+                val forecastResponse = weatherApi.getForecastWeather(city + ",ES")
 
                 // Forecast recoge tramos de 3 horas, para coger 3 dias -> 72h / 3 = 24
                 val upcomingForecast = forecastResponse.list.take(24)
@@ -163,6 +176,10 @@ class PlantRepository(
 
     // Para test
     companion object {
+        // Fecha de próximo riego de una planta recién registrada (aún sin regar)
+        internal fun initialNextWatering(baseDays: Int, now: Long): Long =
+            now + baseDays * 24L * 60 * 60 * 1000
+
         internal fun calculateDynamicDays(baseDays: Int, temp: Double, humidity: Double): Double {
             var modifier = 1.0
 

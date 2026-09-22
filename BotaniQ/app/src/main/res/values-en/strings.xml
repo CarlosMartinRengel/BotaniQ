@@ -58,13 +58,14 @@
     <string name="camera.mode.toast">Camera permission in Settings is required to use the scanner</string>
     <string name="camera.toast.no_permission">No camera permission</string>
     <string name="camera.mode.retryPhoto">Try again</string>
-    <string name="camera.ia.analyzing">AI is analyzing the plant...</string>
+    <string name="camera.ia.analyzing">AI is analyzing the plant…</string>
     <string name="camera.ia.oops">Oops!</string>
     <string name="camera.ia.confidence">Confidence: %1$d%%</string>
     <string name="camera.ia.register_plant">Register plant</string>
     <string name="ia.mode.background">No valid plant detected. Try focusing better on the pot.</string>
     <string name="ia.mode.lowConfidence">I\'m not sure what species this is. Try getting closer or improving the lighting!</string>
     <string name="ia.mode.lowConfidence_diagnostic">I\'m not sure what\'s wrong with this plant. Try getting closer or improving the lighting!</string>
+    <string name="ia.mode.error">The image could not be analyzed. Please try again.</string>
     <string name="ia.status.healthy">Healthy Plant!</string>
     <string name="ia.status.anomaly">Anomaly: %1$s</string>
     <string name="tflite.unknown">Unknown</string>
@@ -85,6 +86,7 @@
     <string name="worker.default_plant_name">Your plant</string>
     <string name="notification.channel.name">Watering reminder</string>
     <string name="notification.channel.desc">Notification to remind plant watering</string>
+    <string name="notification.permission.denied">Without notification permission, BotaniQ won\'t be able to remind you when to water your plants.</string>
     <string name="notification.watering.title">Time to water!</string>
     <string name="notification.watering.body">Your %1$s needs water according to our analysis.</string>
 
