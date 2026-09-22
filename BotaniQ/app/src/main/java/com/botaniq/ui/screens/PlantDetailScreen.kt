@@ -17,10 +17,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -32,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,8 +47,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -56,7 +63,6 @@ import com.botaniq.R
 import com.botaniq.ui.components.DeleteDialog
 import com.botaniq.ui.plantdetail.PlantFormViewModel
 import com.botaniq.ui.plantdetail.WeatherAnalysisStatus
-import com.botaniq.ui.theme.GreenSelectedIcon
 import com.botaniq.utils.UiText
 import com.botaniq.utils.formatDate
 
@@ -107,11 +113,12 @@ fun PlantDetailEditScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -164,28 +171,65 @@ fun PlantDetailEditScreen(
                     contentScale = ContentScale.Crop
                 )
 
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(140.dp)
+                        .align(Alignment.BottomCenter)
+                        .background(
+                            Brush.verticalGradient(
+                                colorStops = arrayOf(
+                                    0f to Color.Transparent,
+                                    1f to Color.Black.copy(alpha = 0.55f)
+                                )
+                            )
+                        )
+                )
+
                 if (state.isEditMode) {
-                    Box(
+                    Surface(
+                        shape = CircleShape,
+                        color = Color.Black.copy(alpha = 0.6f),
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
                             .padding(16.dp)
-                            .background(Color.Black.copy(alpha = 0.6f), CircleShape)
-                            .padding(12.dp)
                             .clickable { onNavigateToCamera() }
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = stringResource(R.string.content_desc_edit_photo),
-                            tint = Color.White,
-                            modifier = Modifier.size(28.dp)
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .padding(12.dp)
+                                .size(28.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = stringResource(R.string.content_desc_edit_photo),
+                                tint = Color.White
+                            )
+                        }
+                    }
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(horizontal = 20.dp, vertical = 16.dp)
+                    ) {
+                        Text(
+                            text = state.nickname,
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = Color.White
+                        )
+                        Text(
+                            text = "${state.commonName} (${state.speciesName})",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.White.copy(alpha = 0.85f)
                         )
                     }
                 }
             }
 
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(20.dp)) {
                 if (state.isEditMode) {
-                    // Modo edición
                     OutlinedTextField(
                         value = state.nickname,
                         onValueChange = { viewModel.onNicknameChange(it) },
@@ -215,29 +259,48 @@ fun PlantDetailEditScreen(
                     }
 
                 } else {
-                    // Detalles de la planta
-                    Text(state.nickname, style = MaterialTheme.typography.headlineMedium)
-                    Text(
-                        "${state.commonName} (${state.speciesName})",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.Gray
-                    )
-
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-
-                    DetailRow(stringResource(R.string.plant_details_category), state.category)
-                    DetailRow(
-                        stringResource(R.string.plant_details_freqCustom),
-                        "${state.baseWaterFreq} días"
-                    )
-                    DetailRow(
-                        stringResource(R.string.plant_details_lastWatered),
-                        formatDate(state.lastWatered).asString()
-                    )
-                    DetailRow(
-                        stringResource(R.string.plant_details_nextWatering),
-                        formatDate(state.nextWatering).asString()
-                    )
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                        ),
+                        shape = MaterialTheme.shapes.large
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            DetailRow(
+                                icon = Icons.Default.Category,
+                                label = stringResource(R.string.plant_details_category),
+                                value = state.category
+                            )
+                            HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 8.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant
+                            )
+                            DetailRow(
+                                icon = Icons.Default.WaterDrop,
+                                label = stringResource(R.string.plant_details_freqCustom),
+                                value = "${state.baseWaterFreq} días"
+                            )
+                            HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 8.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant
+                            )
+                            DetailRow(
+                                icon = Icons.Default.Schedule,
+                                label = stringResource(R.string.plant_details_lastWatered),
+                                value = formatDate(state.lastWatered).asString()
+                            )
+                            HorizontalDivider(
+                                modifier = Modifier.padding(vertical = 8.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant
+                            )
+                            DetailRow(
+                                icon = Icons.Default.Event,
+                                label = stringResource(R.string.plant_details_nextWatering),
+                                value = formatDate(state.nextWatering).asString()
+                            )
+                        }
+                    }
 
                     WeatherAnalysisCard(
                         baseDays = state.baseWaterFreq,
@@ -246,12 +309,38 @@ fun PlantDetailEditScreen(
                         weatherStatus = state.weatherStatus
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        stringResource(R.string.plant_details_careTips),
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(state.careTips)
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                        ),
+                        shape = MaterialTheme.shapes.large
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Column(modifier = Modifier.padding(start = 12.dp)) {
+                                Text(
+                                    text = stringResource(R.string.plant_details_careTips),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = state.careTips,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -261,20 +350,31 @@ fun PlantDetailEditScreen(
 // ---------------- COMPONENTES ----------------
 
 @Composable
-fun DetailRow(label: String, value: String) {
+fun DetailRow(icon: ImageVector, label: String, value: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(20.dp)
+        )
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray,
-            fontWeight = FontWeight.Bold
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 12.dp)
         )
-        Text(text = value, style = MaterialTheme.typography.bodyMedium)
+        Spacer(modifier = Modifier.weight(1f))
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold
+        )
     }
 }
 
@@ -285,30 +385,43 @@ fun WeatherAnalysisCard(
     weatherTitle: UiText?,
     weatherStatus: WeatherAnalysisStatus?
 ) {
-    // Si no hay datos calculados, no hay tarjeta
     if (weatherStatus == null || weatherTitle == null) return
 
     val (icon, color) = when (weatherStatus) {
-        WeatherAnalysisStatus.EARLY -> Icons.Default.WbSunny to Color(0xFFE57373)
-        WeatherAnalysisStatus.DELAYED -> Icons.Default.Info to Color(0xFF64B5F6)
-        WeatherAnalysisStatus.STABLE -> Icons.Default.Info to GreenSelectedIcon
+        WeatherAnalysisStatus.EARLY -> Icons.Default.WbSunny to MaterialTheme.colorScheme.tertiary
+        WeatherAnalysisStatus.DELAYED -> Icons.Default.Info to MaterialTheme.colorScheme.secondary
+        WeatherAnalysisStatus.STABLE -> Icons.Default.Info to MaterialTheme.colorScheme.primary
     }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 16.dp),
-        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f)),
-        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.5f))
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.4f)),
+        shape = MaterialTheme.shapes.large
     ) {
-        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = color,
-                modifier = Modifier.size(32.dp)
-            )
-            Column(modifier = Modifier.padding(start = 12.dp)) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                shape = CircleShape,
+                color = color.copy(alpha = 0.15f),
+                modifier = Modifier.size(44.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = color,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+            Column(modifier = Modifier.padding(start = 14.dp)) {
                 Text(
                     text = stringResource(
                         R.string.plant_details_weather_analysis,

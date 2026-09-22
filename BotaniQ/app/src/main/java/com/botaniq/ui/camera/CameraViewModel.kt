@@ -3,6 +3,7 @@ package com.botaniq.ui.camera
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -18,6 +19,7 @@ enum class ScannerMode(val titleRes: Int) {
     DIAGNOSTIC(R.string.camera_mode_diagnosis)
 }
 
+@Immutable
 data class CameraUIState(
     val selectedMode: ScannerMode = ScannerMode.RECOGNITION,
     val capturedImageUri: Uri? = null,

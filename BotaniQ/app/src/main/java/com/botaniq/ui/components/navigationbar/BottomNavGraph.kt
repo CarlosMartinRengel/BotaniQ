@@ -1,8 +1,12 @@
 package com.botaniq.ui.components.navigationbar
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -25,17 +29,26 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun BottomNavGraph(
-    navController: NavHostController
+    navController: NavHostController,
+    modifier: Modifier = Modifier
 ) {
     NavHost(
         navController = navController,
-        startDestination = BottomBarScreen.Inventory.route
+        startDestination = BottomBarScreen.Inventory.route,
+        modifier = modifier,
+        enterTransition = { fadeIn(animationSpec = tween(180)) },
+        exitTransition = { fadeOut(animationSpec = tween(180)) },
+        popEnterTransition = { fadeIn(animationSpec = tween(180)) },
+        popExitTransition = { fadeOut(animationSpec = tween(180)) }
     ) {
         composable(route = BottomBarScreen.Inventory.route)
         {
             InventoryScreen(
                 onPlantClick = { id ->
                     navController.navigate("plant_detail/$id")
+                },
+                onNavigateToAdd = {
+                    navController.navigate(BottomBarScreen.Add.route)
                 }
             )
         }
