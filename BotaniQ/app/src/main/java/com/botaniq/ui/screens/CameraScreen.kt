@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
-import android.widget.Toast.makeText
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -14,6 +13,8 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY
 import androidx.camera.core.ImageCaptureException
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,8 +25,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.LocalFlorist
@@ -33,11 +36,15 @@ import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItemDefaults.contentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,10 +54,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -69,7 +77,7 @@ import java.io.File
 fun CameraScreen(
     viewModel: CameraViewModel = viewModel(),
     isFromForm: Boolean = false,
-    onPhotoConfirmedForForm: (Uri) -> Unit = {},
+    onPhotoConfirmedForForm: (Uri) -> Unit = { _ -> },
     onAnalyzeWithAI: (Uri, ScannerMode) -> Unit = { _, _ -> },
     onNavigateToRegistration: (String, Uri) -> Unit = { _, _ -> }
 ) {
@@ -83,7 +91,7 @@ fun CameraScreen(
         onResult = { isGranted ->
             viewModel.onPermissionResult(isGranted)
             if (!isGranted) {
-                makeText(
+                Toast.makeText(
                     context,
                     noPermissionMessage,
                     Toast.LENGTH_LONG
@@ -100,7 +108,7 @@ fun CameraScreen(
 
         viewModel.onPermissionResult(hasPermission)
     }
-    //1. Capa normal
+
     Box(modifier = Modifier.fillMaxSize()) {
         if (state.isPermissionGranted) {
             if (state.capturedImageUri != null) {
@@ -124,7 +132,6 @@ fun CameraScreen(
                     onImageObtained = { uri -> viewModel.onImageCaptured(uri) },
                     isFromForm = isFromForm
                 )
-
             }
         } else {
             PermissionRequestContent(onRequestPermission = {
@@ -132,114 +139,132 @@ fun CameraScreen(
             })
         }
 
-        // 2. Pantalla de carga y Resultados de la IA
         if (state.isProcessing || state.recognizedSpecies != null || state.errorMsg != null) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.7f)), // Fondo oscurecido elegante
+                    .background(Color.Black.copy(alpha = 0.7f)),
                 contentAlignment = Alignment.Center
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                Surface(
+                    shape = MaterialTheme.shapes.large,
+                    color = MaterialTheme.colorScheme.surface,
                     modifier = Modifier
-                        .fillMaxWidth(0.8f) // Ocupa el 80% del ancho
-                        .background(
-                            MaterialTheme.colorScheme.surface,
-                            shape = MaterialTheme.shapes.medium
-                        )
-                        .padding(24.dp)
+                        .fillMaxWidth(0.85f)
+                        .widthIn(max = 420.dp)
                 ) {
-                    if (state.isProcessing) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = stringResource(R.string.camera_ia_analyzing),
-                            color = MaterialTheme.colorScheme.onSurface,
-                            textAlign = TextAlign.Center
-                        )
-                    } else if (state.errorMsg != null) {
-                        Icon(
-                            imageVector = Icons.Default.FlashOff,
-                            contentDescription = stringResource(R.string.content_desc_error),
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(48.dp)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = stringResource(R.string.camera_ia_oops),
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = state.errorMsg.asString(),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Button(
-                            onClick = { viewModel.clearCapturedImage() },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(stringResource(R.string.camera_mode_retryPhoto))
-                        }
-                    } else {
-                        val porcentaje = ((state.recognitionConfidence ?: 0f) * 100).toInt()
-
-                        val resultIcon = if (state.selectedMode == ScannerMode.RECOGNITION) {
-                            Icons.Default.LocalFlorist
-                        } else {
-                            Icons.Default.MedicalServices
-                        }
-
-                        Icon(
-                            imageVector = resultIcon,
-                            contentDescription = stringResource(R.string.content_desc_success),
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(48.dp)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = state.recognizedSpecies?.asString() ?: "",
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = stringResource(R.string.camera_ia_confidence, porcentaje),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(24.dp))
-
-                        if (state.selectedMode == ScannerMode.RECOGNITION) {
-
-                            val speciesName = state.recognizedSpecies?.asString() ?: ""
-
-                            Button(
-                                onClick = {
-                                    val uri = state.capturedImageUri
-                                    if (uri != null) {
-                                        onNavigateToRegistration(speciesName, uri)
-                                    }
-                                },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(stringResource(R.string.camera_ia_register_plant))
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(24.dp)
+                    ) {
+                        when {
+                            state.isProcessing -> {
+                                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = stringResource(R.string.camera_ia_analyzing),
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    textAlign = TextAlign.Center
+                                )
                             }
-                        }
-                        Button(
-                            onClick = {
-                                viewModel.clearCapturedImage()
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(stringResource(R.string.camera_mode_retryPhoto))
+
+                            state.errorMsg != null -> {
+                                ResultIcon(
+                                    icon = Icons.Default.FlashOff,
+                                    iconColor = MaterialTheme.colorScheme.error
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = stringResource(R.string.camera_ia_oops),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = state.errorMsg.asString(),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(24.dp))
+                                OutlinedButton(
+                                    onClick = { viewModel.clearCapturedImage() },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(stringResource(R.string.camera_mode_retryPhoto))
+                                }
+                            }
+
+                            state.recognizedSpecies != null -> {
+                                val porcentaje = ((state.recognitionConfidence ?: 0f) * 100).toInt()
+                                val modeIcon = if (state.selectedMode == ScannerMode.RECOGNITION)
+                                    Icons.Default.LocalFlorist else Icons.Default.MedicalServices
+
+                                ResultIcon(
+                                    icon = modeIcon,
+                                    iconColor = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = state.recognizedSpecies.asString(),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    textAlign = TextAlign.Center
+                                )
+                                Text(
+                                    text = stringResource(
+                                        R.string.camera_ia_confidence,
+                                        porcentaje
+                                    ),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(24.dp))
+
+                                if (state.selectedMode == ScannerMode.RECOGNITION) {
+                                    val speciesName = state.recognizedSpecies.asString()
+
+                                    Button(
+                                        onClick = {
+                                            val uri = state.capturedImageUri
+                                            if (uri != null) {
+                                                onNavigateToRegistration(speciesName, uri)
+                                            }
+                                        },
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text(stringResource(R.string.camera_ia_register_plant))
+                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                }
+                                OutlinedButton(
+                                    onClick = { viewModel.clearCapturedImage() },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(stringResource(R.string.camera_mode_retryPhoto))
+                                }
+                            }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun ResultIcon(icon: ImageVector, iconColor: Color) {
+    Surface(
+        shape = CircleShape,
+        color = iconColor.copy(alpha = 0.15f),
+        modifier = Modifier.size(72.dp)
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconColor,
+                modifier = Modifier.size(36.dp)
+            )
         }
     }
 }
@@ -253,18 +278,22 @@ fun PermissionRequestContent(onRequestPermission: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        ResultIcon(icon = Icons.Default.CameraAlt, iconColor = MaterialTheme.colorScheme.primary)
+        Spacer(modifier = Modifier.height(24.dp))
         Text(
             stringResource(R.string.camera_mode_access),
-            style = MaterialTheme.typography.headlineMedium
+            style = MaterialTheme.typography.headlineSmall,
+            textAlign = TextAlign.Center
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         Text(
             stringResource(R.string.camera_mode_permission),
             style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         Text(
             stringResource(R.string.camera_permission_denied_hint),
             color = MaterialTheme.colorScheme.error,
@@ -276,10 +305,10 @@ fun PermissionRequestContent(onRequestPermission: () -> Unit) {
         Button(onClick = onRequestPermission) {
             Text(stringResource(R.string.camera_mode_open))
         }
-
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScannerContent(
     state: CameraUIState,
@@ -317,21 +346,18 @@ fun ScannerContent(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (!isFromForm) {
-                // Selector de modo (Reconocimiento / Diagnóstico)
-                Row(
-                    modifier = Modifier.padding(bottom = 24.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier.padding(bottom = 24.dp)
                 ) {
-                    ScannerMode.entries.forEach { mode ->
-                        FilterChip(
+                    ScannerMode.entries.forEachIndexed { index, mode ->
+                        SegmentedButton(
                             selected = state.selectedMode == mode,
                             onClick = { onModeChange(mode) },
-                            label = {
-                                Text(
-                                    text = stringResource(id = mode.titleRes),
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
+                            shape = SegmentedButtonDefaults.itemShape(
+                                index = index,
+                                count = ScannerMode.entries.size
+                            ),
+                            label = { Text(stringResource(id = mode.titleRes)) }
                         )
                     }
                 }
@@ -345,7 +371,9 @@ fun ScannerContent(
             ) {
                 IconButton(
                     onClick = { isFlashEnabled = !isFlashEnabled },
-                    modifier = Modifier.background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                    modifier = Modifier
+                        .size(56.dp)
+                        .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                 ) {
                     Icon(
                         imageVector = if (isFlashEnabled) Icons.Default.FlashOn else Icons.Default.FlashOff,
@@ -353,38 +381,42 @@ fun ScannerContent(
                         tint = Color.White
                     )
                 }
-                Button(
-                    onClick = {
-                        imageCapture.flashMode =
-                            if (isFlashEnabled) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF
 
-                        takePhoto(
-                            context = context,
-                            imageCapture = imageCapture,
-                            onPhotoCaptured = { photoFile ->
-                                onImageObtained(photoFile.toUri())
-                            })
-                    },
-                    modifier = Modifier.size(72.dp),
-                    shape = CircleShape
+                Box(
+                    modifier = Modifier
+                        .size(76.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.85f))
+                        .border(4.dp, Color.White, CircleShape)
+                        .clickable {
+                            imageCapture.flashMode =
+                                if (isFlashEnabled) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF
+
+                            takePhoto(
+                                context = context,
+                                imageCapture = imageCapture,
+                                onPhotoCaptured = { photoFile ->
+                                    onImageObtained(photoFile.toUri())
+                                })
+                        },
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_bottom_camera_focused),
-                        contentDescription = stringResource(R.string.content_desc_icon),
-                        tint = contentColor,
-                        modifier = Modifier.size(28.dp)
+                    Box(
+                        modifier = Modifier
+                            .size(58.dp)
+                            .clip(CircleShape)
+                            .background(Color.White)
                     )
                 }
 
-                Button(
+                IconButton(
                     onClick = {
                         photoPickerLauncher.launch(
-                            // Solo imagenes
                             PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                         )
                     },
                     modifier = Modifier
-                        .size(72.dp)
+                        .size(56.dp)
                         .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                 ) {
                     Icon(
@@ -412,7 +444,7 @@ fun takePhoto(
         object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                 Log.d("CameraScreen", "Foto guardada con éxito en: ${photoFile.absolutePath}")
-                onPhotoCaptured(photoFile) // El archivo se devuelve a la UI
+                onPhotoCaptured(photoFile)
             }
 
             override fun onError(exc: ImageCaptureException) {
@@ -431,23 +463,24 @@ fun ImageConfirmationContent(
     onConfirm: () -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // 1. Cabecera
         Text(
             text = stringResource(R.string.camera_mode_confirmImage),
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(top = 32.dp)
+            modifier = Modifier.padding(top = 16.dp)
         )
 
-        // 2. Imagen capturada
         Box(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(vertical = 16.dp)
+                .clip(MaterialTheme.shapes.large)
         ) {
             AsyncImage(
                 model = imageUri,
@@ -457,23 +490,23 @@ fun ImageConfirmationContent(
             )
         }
 
-        // 3. Botonera (Reintentar / Continuar)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(32.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
+                .padding(bottom = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Button(
+            OutlinedButton(
                 onClick = onRetry,
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = Color.Gray
-                )
+                modifier = Modifier.weight(1f)
             ) {
                 Text(stringResource(R.string.camera_mode_retryPhoto))
             }
 
-            Button(onClick = onConfirm) {
+            Button(
+                onClick = onConfirm,
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(
                     text = if (isFromForm) stringResource(R.string.camera_mode_plantFormOnResult)
                     else if (mode == ScannerMode.RECOGNITION) stringResource(R.string.camera_mode_recognitionOnResult)
@@ -483,6 +516,3 @@ fun ImageConfirmationContent(
         }
     }
 }
-
-
-
